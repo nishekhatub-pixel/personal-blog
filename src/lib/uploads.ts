@@ -1,10 +1,10 @@
 import { randomUUID } from "node:crypto";
-import { mkdir, readFile, unlink, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileTypeFromBuffer } from "file-type";
-import sharp from "sharp";
 import { db } from "@/lib/db";
 import { env } from "@/lib/env";
+import { safeUploadPath, UPLOAD_ROOT } from "@/lib/media-storage";
 
 const ACCEPTED_TYPES = {
   "image/jpeg": new Set(["jpg", "jpeg"]),
@@ -13,18 +13,15 @@ const ACCEPTED_TYPES = {
   "image/avif": new Set(["avif"]),
 } as const;
 
-const UPLOAD_ROOT = path.resolve(process.cwd(), "public", "uploads");
-
 function extensionOf(filename: string) {
   return path.extname(filename).slice(1).toLocaleLowerCase("en-US");
 }
 
-function safeUploadPath(url: string) {
-  if (!url.startsWith("/uploads/")) throw new Error("媒体路径无效。");
-  const target = path.resolve(process.cwd(), "public", `.${url}`);
-  const relative = path.relative(UPLOAD_ROOT, target);
-  if (relative.startsWith("..") || path.isAbsolute(relative)) throw new Error("媒体路径越界。");
-  return target;
+let sharpPromise: Promise<typeof import("sharp")["default"]> | undefined;
+
+function loadSharp() {
+  sharpPromise ??= import("sharp").then((module) => module.default);
+  return sharpPromise;
 }
 
 export async function processMediaUpload(file: File, alt: string) {
@@ -46,6 +43,7 @@ export async function processMediaUpload(file: File, alt: string) {
   const detectedExtensions = ACCEPTED_TYPES[detected.mime as keyof typeof ACCEPTED_TYPES];
   if (!detectedExtensions.has(extension as never)) throw new Error("图片扩展名与文件内容不一致。");
 
+  const sharp = await loadSharp();
   const decoder = sharp(input, { failOn: "error", limitInputPixels: 40_000_000 }).rotate();
   const metadata = await decoder.metadata();
   if (!metadata.width || !metadata.height) throw new Error("图片尺寸无效。");
@@ -91,61 +89,4 @@ export async function processMediaUpload(file: File, alt: string) {
       variantsJson: JSON.stringify(variants),
     },
   });
-}
-
-export async function deleteMediaAndFiles(id: string) {
-  const media = await db.media.findUnique({
-    where: { id },
-    include: {
-      _count: {
-        select: {
-          albumCovers: true,
-          photos: true,
-          momentMedia: true,
-          musicCovers: true,
-          playlistCovers: true,
-        },
-      },
-    },
-  });
-  if (!media) throw new Error("媒体不存在。");
-  const referenceCount = Object.values(media._count).reduce(
-    (total, count) => total + count,
-    0,
-  );
-  if (referenceCount > 0) {
-    throw new Error(
-      `该媒体仍被 ${referenceCount} 处相册、照片、说说或音乐内容引用，请先解除引用。`,
-    );
-  }
-
-  let variants: Record<string, string> = {};
-  try {
-    variants = JSON.parse(media.variantsJson) as Record<string, string>;
-  } catch {
-    variants = {};
-  }
-  const urls = new Set([media.url, ...Object.values(variants)]);
-  await db.media.delete({ where: { id } });
-  const cleanup = await Promise.allSettled(
-    Array.from(urls).map(async (url) => {
-      try {
-        await unlink(safeUploadPath(url));
-      } catch (error) {
-        const code = error && typeof error === "object" && "code" in error ? error.code : "";
-        if (code !== "ENOENT") throw error;
-      }
-    }),
-  );
-  const failures = cleanup.filter((result) => result.status === "rejected");
-  if (failures.length > 0) {
-    console.warn(
-      JSON.stringify({
-        event: "media.cleanup.partial",
-        mediaId: id,
-        failedFiles: failures.length,
-      }),
-    );
-  }
-  return media;
 }

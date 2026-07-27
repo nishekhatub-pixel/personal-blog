@@ -1,8 +1,17 @@
 import type { NextConfig } from "next";
 
+const sharpLinuxRuntimeFiles = [
+  "./node_modules/@img/sharp-linux-x64/**/*",
+  "./node_modules/@img/sharp-libvips-linux-x64/**/*",
+];
+
 const nextConfig: NextConfig = {
   experimental: {
     optimizePackageImports: ["lucide-react", "motion"],
+  },
+  outputFileTracingIncludes: {
+    "/api/admin/media": sharpLinuxRuntimeFiles,
+    "/api/media/upload": sharpLinuxRuntimeFiles,
   },
   images: {
     formats: ["image/avif", "image/webp"],

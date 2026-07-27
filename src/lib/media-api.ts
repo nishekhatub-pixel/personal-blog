@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { assertSameOrigin } from "@/lib/security";
-import { processMediaUpload } from "@/lib/uploads";
 
 export async function listMediaResponse(request: Request) {
   const user = await getCurrentUser();
@@ -27,6 +26,7 @@ export async function uploadMediaResponse(request: Request) {
     const file = formData.get("file");
     const alt = formData.get("alt");
     if (!(file instanceof File)) return NextResponse.json({ error: "请选择图片文件。" }, { status: 400 });
+    const { processMediaUpload } = await import("@/lib/uploads");
     const media = await processMediaUpload(file, typeof alt === "string" ? alt : "");
     return NextResponse.json({ media }, { status: 201 });
   } catch (error) {

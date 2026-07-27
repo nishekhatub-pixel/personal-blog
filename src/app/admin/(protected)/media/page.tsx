@@ -1,7 +1,7 @@
 import type { Prisma } from "@prisma/client";
 import { ImageIcon, Trash2 } from "lucide-react";
 import Image from "next/image";
-import { deleteMedia } from "@/actions/admin";
+import { deleteMedia } from "@/actions/media-admin";
 import { ConfirmButton, SearchField } from "@/components/admin/AdminControls";
 import { AdminHeader } from "@/components/admin/AdminHeader";
 import { CopyMediaUrl } from "@/components/admin/CopyMediaUrl";

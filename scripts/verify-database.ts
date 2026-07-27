@@ -1,5 +1,5 @@
 import { Prisma, PrismaClient } from "@prisma/client";
-import { deleteMediaAndFiles } from "@/lib/uploads";
+import { deleteMediaAndFiles } from "@/lib/media-storage";
 
 const prisma = new PrismaClient();
 const cleanupRequested = process.argv.includes("--cleanup-test-data");

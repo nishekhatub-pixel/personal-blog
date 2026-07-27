@@ -5,7 +5,6 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { authenticateCredentials, createSession, destroySession, requireAdmin } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { deleteMediaAndFiles } from "@/lib/uploads";
 import {
   assertSameOrigin,
   getRequestMetadata,
@@ -286,13 +285,6 @@ export async function deleteComment(formData: FormData) {
   await db.comment.delete({ where: { id: requiredId(formData) } });
   revalidatePath("/admin/comments");
   refreshContent();
-}
-
-export async function deleteMedia(formData: FormData) {
-  await assertSameOrigin();
-  await requireAdmin();
-  await deleteMediaAndFiles(requiredId(formData));
-  revalidatePath("/admin/media");
 }
 
 export async function updateSettings(formData: FormData) {

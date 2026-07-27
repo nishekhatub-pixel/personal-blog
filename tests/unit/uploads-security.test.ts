@@ -21,9 +21,9 @@ vi.mock("file-type", () => ({
 }));
 
 import {
-  deleteMediaAndFiles,
   processMediaUpload,
 } from "@/lib/uploads";
+import { deleteMediaAndFiles } from "@/lib/media-storage";
 
 describe("media upload validation", () => {
   beforeEach(() => {
