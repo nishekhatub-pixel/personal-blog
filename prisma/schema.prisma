@@ -1,0 +1,487 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  EDITOR
+}
+
+enum ContentStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum CommentStatus {
+  PENDING
+  APPROVED
+  HIDDEN
+  SPAM
+}
+
+enum MessageStatus {
+  NEW
+  READ
+  ARCHIVED
+}
+
+enum SubscriberStatus {
+  ACTIVE
+  UNSUBSCRIBED
+}
+
+enum AudioSourceType {
+  UPLOAD
+  REMOTE
+}
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  name         String
+  passwordHash String
+  role         UserRole  @default(ADMIN)
+  sessions     Session[]
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+model Session {
+  id         String   @id @default(cuid())
+  tokenHash  String   @unique
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt  DateTime
+  lastSeenAt DateTime @default(now())
+  ipHash     String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model LoginAttempt {
+  id        String   @id @default(cuid())
+  key       String
+  succeeded Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([key, createdAt])
+}
+
+model Category {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  slug        String   @unique
+  description String?
+  posts       Post[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Tag {
+  id        String       @id @default(cuid())
+  name      String       @unique
+  slug      String       @unique
+  posts     PostTag[]
+  projects  ProjectTag[]
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+}
+
+model Post {
+  id             String        @id @default(cuid())
+  title          String
+  slug           String        @unique
+  excerpt        String
+  content        String
+  coverImage     String?
+  coverAlt       String?
+  status         ContentStatus @default(DRAFT)
+  featured       Boolean       @default(false)
+  readingMinutes Int           @default(5)
+  viewCount      Int           @default(0)
+  seoTitle       String?
+  seoDescription String?
+  categoryId     String
+  category       Category      @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  tags           PostTag[]
+  comments       Comment[]
+  pageViews      PageView[]
+  publishedAt    DateTime?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  @@index([status, publishedAt])
+  @@index([categoryId])
+  @@index([featured])
+}
+
+model PostTag {
+  postId String
+  tagId  String
+  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+  tag    Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([postId, tagId])
+  @@index([tagId])
+}
+
+model Project {
+  id             String        @id @default(cuid())
+  title          String
+  slug           String        @unique
+  summary        String
+  body           String
+  coverImage     String?
+  coverAlt       String?
+  galleryJson    String        @default("[]")
+  technologyJson String        @default("[]")
+  demoUrl        String?
+  sourceUrl      String?
+  status         ContentStatus @default(DRAFT)
+  featured       Boolean       @default(false)
+  seoTitle       String?
+  seoDescription String?
+  tags           ProjectTag[]
+  pageViews      PageView[]
+  publishedAt    DateTime?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  @@index([status, publishedAt])
+  @@index([featured])
+}
+
+model ProjectTag {
+  projectId String
+  tagId     String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  tag       Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([projectId, tagId])
+  @@index([tagId])
+}
+
+model Media {
+  id             String        @id @default(cuid())
+  originalName   String
+  storedName     String        @unique
+  mimeType       String
+  size           Int
+  width          Int?
+  height         Int?
+  alt            String
+  url            String        @unique
+  variantsJson   String        @default("{}")
+  albumCovers    PhotoAlbum[]  @relation("PhotoAlbumCover")
+  photos         Photo[]       @relation("PhotoMedia")
+  momentMedia    MomentMedia[] @relation("MomentMediaAsset")
+  musicCovers    MusicTrack[]  @relation("MusicTrackCover")
+  playlistCovers Playlist[]    @relation("PlaylistCover")
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+}
+
+model Comment {
+  id         String        @id @default(cuid())
+  postId     String
+  post       Post          @relation(fields: [postId], references: [id], onDelete: Cascade)
+  parentId   String?
+  parent     Comment?      @relation("CommentReplies", fields: [parentId], references: [id], onDelete: SetNull)
+  replies    Comment[]     @relation("CommentReplies")
+  authorName String
+  email      String
+  content    String
+  status     CommentStatus @default(PENDING)
+  ipHash     String?
+  userAgent  String?
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+
+  @@index([postId, status, createdAt])
+  @@index([parentId])
+  @@index([ipHash, createdAt])
+}
+
+model TimelineEvent {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  dateLabel   String?
+  phase       String
+  position    Int      @default(0)
+  visible     Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([visible, position])
+}
+
+model SiteSetting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  group     String   @default("general")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([group])
+}
+
+model ContactMessage {
+  id        String        @id @default(cuid())
+  name      String
+  email     String
+  subject   String
+  message   String
+  status    MessageStatus @default(NEW)
+  ipHash    String?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@index([status, createdAt])
+  @@index([ipHash, createdAt])
+}
+
+model Subscriber {
+  id        String           @id @default(cuid())
+  email     String           @unique
+  status    SubscriberStatus @default(ACTIVE)
+  ipHash    String?
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+}
+
+model PageView {
+  id          String   @id @default(cuid())
+  path        String
+  visitorHash String?
+  postId      String?
+  post        Post?    @relation(fields: [postId], references: [id], onDelete: Cascade)
+  projectId   String?
+  project     Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+
+  @@index([path, createdAt])
+  @@index([postId, createdAt])
+  @@index([projectId, createdAt])
+  @@index([visitorHash, createdAt])
+}
+
+model PhotoAlbum {
+  id           String        @id @default(cuid())
+  title        String
+  slug         String        @unique
+  description  String?
+  coverMediaId String?
+  coverMedia   Media?        @relation("PhotoAlbumCover", fields: [coverMediaId], references: [id], onDelete: SetNull)
+  recordDate   DateTime?
+  city         String?
+  featured     Boolean       @default(false)
+  position     Int           @default(0)
+  status       ContentStatus @default(DRAFT)
+  publishedAt  DateTime?
+  photos       Photo[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@index([status, featured, position, publishedAt])
+  @@index([coverMediaId])
+  @@index([recordDate])
+}
+
+model Photo {
+  id          String        @id @default(cuid())
+  albumId     String
+  album       PhotoAlbum    @relation(fields: [albumId], references: [id], onDelete: Cascade)
+  mediaId     String
+  media       Media         @relation("PhotoMedia", fields: [mediaId], references: [id], onDelete: Restrict)
+  alt         String
+  caption     String?
+  takenAt     DateTime?
+  location    String?
+  position    Int           @default(0)
+  status      ContentStatus @default(DRAFT)
+  publishedAt DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@unique([albumId, mediaId])
+  @@index([albumId, status, position, publishedAt])
+  @@index([mediaId])
+  @@index([takenAt])
+}
+
+model Moment {
+  id          String           @id @default(cuid())
+  content     String
+  mood        String?
+  weather     String?
+  pinned      Boolean          @default(false)
+  status      ContentStatus    @default(DRAFT)
+  publishedAt DateTime?
+  media       MomentMedia[]
+  comments    MomentComment[]
+  reactions   MomentReaction[]
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@index([status, pinned, publishedAt])
+  @@index([createdAt])
+}
+
+model MomentMedia {
+  id        String   @id @default(cuid())
+  momentId  String
+  moment    Moment   @relation(fields: [momentId], references: [id], onDelete: Cascade)
+  mediaId   String
+  media     Media    @relation("MomentMediaAsset", fields: [mediaId], references: [id], onDelete: Restrict)
+  alt       String
+  caption   String?
+  position  Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@unique([momentId, mediaId])
+  @@index([momentId, position])
+  @@index([mediaId])
+}
+
+model MomentComment {
+  id         String          @id @default(cuid())
+  momentId   String
+  moment     Moment          @relation(fields: [momentId], references: [id], onDelete: Cascade)
+  parentId   String?
+  parent     MomentComment?  @relation("MomentCommentReplies", fields: [parentId], references: [id], onDelete: SetNull)
+  replies    MomentComment[] @relation("MomentCommentReplies")
+  authorName String
+  email      String
+  content    String
+  status     CommentStatus   @default(PENDING)
+  ipHash     String?
+  userAgent  String?
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+
+  @@index([momentId, status, createdAt])
+  @@index([parentId])
+  @@index([ipHash, createdAt])
+}
+
+model MomentReaction {
+  id          String   @id @default(cuid())
+  momentId    String
+  moment      Moment   @relation(fields: [momentId], references: [id], onDelete: Cascade)
+  visitorHash String
+  createdAt   DateTime @default(now())
+
+  @@unique([momentId, visitorHash])
+  @@index([momentId, createdAt])
+  @@index([visitorHash, createdAt])
+}
+
+model MusicTrack {
+  id              String          @id @default(cuid())
+  title           String
+  artist          String?
+  album           String?
+  sourceType      AudioSourceType
+  audioUrl        String          @unique
+  originalName    String?
+  storedName      String?         @unique
+  mimeType        String?
+  size            Int?
+  durationSeconds Int?
+  coverMediaId    String?
+  coverMedia      Media?          @relation("MusicTrackCover", fields: [coverMediaId], references: [id], onDelete: SetNull)
+  lyrics          String?
+  note            String?
+  featured        Boolean         @default(false)
+  favorite        Boolean         @default(false)
+  status          ContentStatus   @default(DRAFT)
+  publishedAt     DateTime?
+  playlists       PlaylistTrack[]
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  @@index([status, featured, favorite, publishedAt])
+  @@index([sourceType])
+  @@index([coverMediaId])
+}
+
+model Playlist {
+  id           String          @id @default(cuid())
+  title        String
+  slug         String          @unique
+  description  String?
+  coverMediaId String?
+  coverMedia   Media?          @relation("PlaylistCover", fields: [coverMediaId], references: [id], onDelete: SetNull)
+  featured     Boolean         @default(false)
+  position     Int             @default(0)
+  status       ContentStatus   @default(DRAFT)
+  publishedAt  DateTime?
+  tracks       PlaylistTrack[]
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  @@index([status, featured, position, publishedAt])
+  @@index([coverMediaId])
+}
+
+model PlaylistTrack {
+  playlistId String
+  playlist   Playlist   @relation(fields: [playlistId], references: [id], onDelete: Cascade)
+  trackId    String
+  track      MusicTrack @relation(fields: [trackId], references: [id], onDelete: Cascade)
+  position   Int        @default(0)
+  note       String?
+  addedAt    DateTime   @default(now())
+
+  @@id([playlistId, trackId])
+  @@unique([playlistId, position])
+  @@index([trackId])
+}
+
+model GuestbookMessage {
+  id           String        @id @default(cuid())
+  nickname     String
+  content      String
+  website      String?
+  colorKey     String
+  status       CommentStatus @default(PENDING)
+  pinned       Boolean       @default(false)
+  replyContent String?
+  repliedAt    DateTime?
+  ipHash       String?
+  userAgent    String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@index([status, pinned, createdAt])
+  @@index([ipHash, createdAt])
+}
+
+model FriendLink {
+  id          String        @id @default(cuid())
+  name        String
+  url         String        @unique
+  description String
+  avatarUrl   String?
+  contact     String?
+  tagsJson    String        @default("[]")
+  featured    Boolean       @default(false)
+  position    Int           @default(0)
+  status      ContentStatus @default(DRAFT)
+  publishedAt DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([status, featured, position, publishedAt])
+}

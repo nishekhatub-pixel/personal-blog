@@ -1,0 +1,809 @@
+{
+  "baseUrl": "https://www.aibrium.cn/",
+  "records": [
+    {
+      "key": "home",
+      "label": "首页",
+      "url": "https://www.aibrium.cn/",
+      "title": "Frud's Blog",
+      "headings": [
+        "Frud_",
+        "Never Say Never",
+        "Frud_",
+        "导航",
+        "站点统计",
+        "RLHF-PPO",
+        "从被动检索到主动导航：NapMem 让大模型学会“使用记忆”",
+        "RL学习笔记-西湖大学赵世钰版（更新中）",
+        "FluxMem：把记忆看成一张会不断改写的图",
+        "高质量播客推荐",
+        "2026年 7月"
+      ],
+      "links": [
+        {
+          "href": "https://www.aibrium.cn/",
+          "text": "Frud's Blog"
+        },
+        {
+          "href": "https://www.aibrium.cn/",
+          "text": "首页"
+        },
+        {
+          "href": "https://www.aibrium.cn/projects",
+          "text": "开源项目"
+        },
+        {
+          "href": "https://www.aibrium.cn/timeline",
+          "text": "归档"
+        },
+        {
+          "href": "https://www.aibrium.cn/photowall",
+          "text": "照片墙"
+        },
+        {
+          "href": "https://www.aibrium.cn/music",
+          "text": "音乐"
+        },
+        {
+          "href": "https://www.aibrium.cn/moments",
+          "text": "说说"
+        },
+        {
+          "href": "https://www.aibrium.cn/chatter",
+          "text": "留言墙"
+        },
+        {
+          "href": "https://www.aibrium.cn/friends",
+          "text": "友链"
+        },
+        {
+          "href": "https://www.aibrium.cn/about",
+          "text": "关于"
+        },
+        {
+          "href": "https://github.com/pan0918",
+          "text": ""
+        },
+        {
+          "href": "https://x.com/Frudlk3j",
+          "text": ""
+        },
+        {
+          "href": "https://www.xiaohongshu.com/user/profile/619bb654000000001000cd64",
+          "text": ""
+        },
+        {
+          "href": "https://www.aibrium.cn/timeline",
+          "text": "归档"
+        },
+        {
+          "href": "https://www.aibrium.cn/moments",
+          "text": "说说"
+        },
+        {
+          "href": "https://www.aibrium.cn/photowall",
+          "text": "照片墙"
+        },
+        {
+          "href": "https://www.aibrium.cn/projects",
+          "text": "开源项目"
+        },
+        {
+          "href": "https://www.aibrium.cn/friends",
+          "text": "友链"
+        },
+        {
+          "href": "https://www.aibrium.cn/about",
+          "text": "关于"
+        },
+        {
+          "href": "https://www.aibrium.cn/posts/rlhfppo",
+          "text": "RLHF-PPORLHF场景下PPO 概念梳理笔记2026.07.2513RL"
+        },
+        {
+          "href": "https://www.aibrium.cn/posts/napmem",
+          "text": "从被动检索到主动导航：NapMem 让大模型学会“使用记忆”论文阅读笔记：将记忆转化成智能体可以学习使用的结构化动作空间2026.07.1186Agent MemoryRL"
+        },
+        {
+          "href": "https://www.aibrium.cn/posts/Research-RL_WestLake",
+          "text": "RL学习笔记-西湖大学赵世钰版（更新中）学习强化学习原理的笔记2026.06.3059RL"
+        },
+        {
+          "href": "https://www.aibrium.cn/posts/Research-FluxMem",
+          "text": "FluxMem：把记忆看成一张会不断改写的图论文阅读笔记：从静态检索到持续演化的记忆连接2026.05.2933Agent MemoryLLM"
+        },
+        {
+          "href": "https://www.aibrium.cn/posts/Life-Podcast",
+          "text": "高质量播客推荐个人常听的Podcast2026.05.2545AIPodcast"
+        }
+      ],
+      "landmarks": {
+        "main": 1,
+        "nav": 1,
+        "aside": 2,
+        "article": 0
+      },
+      "layout": {
+        "viewportWidth": 1440,
+        "bodyBackground": "rgba(0, 0, 0, 0)",
+        "bodyColor": "rgb(63, 53, 46)",
+        "mainWidth": 612,
+        "mainLeft": 404
+      },
+      "blockingLoader": {
+        "found": true,
+        "hidden": true,
+        "position": "fixed",
+        "width": 1440,
+        "height": 1100
+      },
+      "screenshot": "artifacts/reference-aibrium/home-desktop.png"
+    },
+    {
+      "key": "archive",
+      "label": "归档",
+      "url": "https://www.aibrium.cn/timeline",
+      "title": "Frud's Blog",
+      "headings": [
+        "Frud_",
+        "归档",
+        "2026",
+        "RLHF-PPO",
+        "从被动检索到主动导航：NapMem 让大模型学会“使用记忆”",
+        "RL学习笔记-西湖大学赵世钰版（更新中）",
+        "FluxMem：把记忆看成一张会不断改写的图",
+        "高质量播客推荐"
+      ],
+      "links": [
+        {
+          "href": "https://www.aibrium.cn/",
+          "text": "Frud's Blog"
+        },
+        {
+          "href": "https://www.aibrium.cn/",
+          "text": "首页"
+        },
+        {
+          "href": "https://www.aibrium.cn/projects",
+          "text": "开源项目"
+        },
+        {
+          "href": "https://www.aibrium.cn/timeline",
+          "text": "归档"
+        },
+        {
+          "href": "https://www.aibrium.cn/photowall",
+          "text": "照片墙"
+        },
+        {
+          "href": "https://www.aibrium.cn/music",
+          "text": "音乐"
+        },
+        {
+          "href": "https://www.aibrium.cn/moments",
+          "text": "说说"
+        },
+        {
+          "href": "https://www.aibrium.cn/chatter",
+          "text": "留言墙"
+        },
+        {
+          "href": "https://www.aibrium.cn/friends",
+          "text": "友链"
+        },
+        {
+          "href": "https://www.aibrium.cn/about",
+          "text": "关于"
+        },
+        {
+          "href": "https://www.aibrium.cn/posts/rlhfppo",
+          "text": "RLHF-PPO132026.07.25Research#RL"
+        },
+        {
+          "href": "https://www.aibrium.cn/posts/napmem",
+          "text": "从被动检索到主动导航：NapMem 让大模型学会“使用记忆”862026.07.11Research#Agent Memory#RL"
+        },
+        {
+          "href": "https://www.aibrium.cn/posts/Research-RL_WestLake",
+          "text": "RL学习笔记-西湖大学赵世钰版（更新中）592026.06.30Research#RL"
+        },
+        {
+          "href": "https://www.aibrium.cn/posts/Research-FluxMem",
+          "text": "FluxMem：把记忆看成一张会不断改写的图332026.05.29Research#Agent Memory#LLM"
+        },
+        {
+          "href": "https://www.aibrium.cn/posts/Life-Podcast",
+          "text": "高质量播客推荐452026.05.25Life#AI#Podcast"
+        }
+      ],
+      "landmarks": {
+        "main": 1,
+        "nav": 1,
+        "aside": 0,
+        "article": 0
+      },
+      "layout": {
+        "viewportWidth": 1440,
+        "bodyBackground": "rgba(0, 0, 0, 0)",
+        "bodyColor": "rgb(63, 53, 46)",
+        "mainWidth": 896,
+        "mainLeft": 272
+      },
+      "blockingLoader": {
+        "found": true,
+        "hidden": true,
+        "position": "fixed",
+        "width": 1440,
+        "height": 1100
+      },
+      "screenshot": "artifacts/reference-aibrium/archive-desktop.png"
+    },
+    {
+      "key": "photos",
+      "label": "照片墙",
+      "url": "https://www.aibrium.cn/photowall",
+      "title": "Frud's Blog",
+      "headings": [
+        "Frud_",
+        "照片墙",
+        "奉化印象",
+        "长沙印象",
+        "哈尔滨印象",
+        "沈阳印象",
+        "川西印象"
+      ],
+      "links": [
+        {
+          "href": "https://www.aibrium.cn/",
+          "text": "Frud's Blog"
+        },
+        {
+          "href": "https://www.aibrium.cn/",
+          "text": "首页"
+        },
+        {
+          "href": "https://www.aibrium.cn/projects",
+          "text": "开源项目"
+        },
+        {
+          "href": "https://www.aibrium.cn/timeline",
+          "text": "归档"
+        },
+        {
+          "href": "https://www.aibrium.cn/photowall",
+          "text": "照片墙"
+        },
+        {
+          "href": "https://www.aibrium.cn/music",
+          "text": "音乐"
+        },
+        {
+          "href": "https://www.aibrium.cn/moments",
+          "text": "说说"
+        },
+        {
+          "href": "https://www.aibrium.cn/chatter",
+          "text": "留言墙"
+        },
+        {
+          "href": "https://www.aibrium.cn/friends",
+          "text": "友链"
+        },
+        {
+          "href": "https://www.aibrium.cn/about",
+          "text": "关于"
+        }
+      ],
+      "landmarks": {
+        "main": 1,
+        "nav": 1,
+        "aside": 0,
+        "article": 0
+      },
+      "layout": {
+        "viewportWidth": 1440,
+        "bodyBackground": "rgba(0, 0, 0, 0)",
+        "bodyColor": "rgb(63, 53, 46)",
+        "mainWidth": 1152,
+        "mainLeft": 144
+      },
+      "blockingLoader": {
+        "found": true,
+        "hidden": true,
+        "position": "fixed",
+        "width": 1440,
+        "height": 1100
+      },
+      "screenshot": "artifacts/reference-aibrium/photos-desktop.png"
+    },
+    {
+      "key": "music",
+      "label": "音乐",
+      "url": "https://www.aibrium.cn/music",
+      "title": "Frud's Blog",
+      "headings": [
+        "Frud_",
+        "云端乐律",
+        "Simon",
+        "丁世光"
+      ],
+      "links": [
+        {
+          "href": "https://www.aibrium.cn/",
+          "text": "Frud's Blog"
+        },
+        {
+          "href": "https://www.aibrium.cn/",
+          "text": "首页"
+        },
+        {
+          "href": "https://www.aibrium.cn/projects",
+          "text": "开源项目"
+        },
+        {
+          "href": "https://www.aibrium.cn/timeline",
+          "text": "归档"
+        },
+        {
+          "href": "https://www.aibrium.cn/photowall",
+          "text": "照片墙"
+        },
+        {
+          "href": "https://www.aibrium.cn/music",
+          "text": "音乐"
+        },
+        {
+          "href": "https://www.aibrium.cn/moments",
+          "text": "说说"
+        },
+        {
+          "href": "https://www.aibrium.cn/chatter",
+          "text": "留言墙"
+        },
+        {
+          "href": "https://www.aibrium.cn/friends",
+          "text": "友链"
+        },
+        {
+          "href": "https://www.aibrium.cn/about",
+          "text": "关于"
+        }
+      ],
+      "landmarks": {
+        "main": 1,
+        "nav": 1,
+        "aside": 0,
+        "article": 0
+      },
+      "layout": {
+        "viewportWidth": 1440,
+        "bodyBackground": "rgba(0, 0, 0, 0)",
+        "bodyColor": "rgb(63, 53, 46)",
+        "mainWidth": 1280,
+        "mainLeft": 80
+      },
+      "blockingLoader": {
+        "found": true,
+        "hidden": true,
+        "position": "fixed",
+        "width": 1440,
+        "height": 1100
+      },
+      "screenshot": "artifacts/reference-aibrium/music-desktop.png"
+    },
+    {
+      "key": "moments",
+      "label": "说说",
+      "url": "https://www.aibrium.cn/moments",
+      "title": "Frud's Blog",
+      "headings": [
+        "Frud_",
+        "说说 / 碎碎念"
+      ],
+      "links": [
+        {
+          "href": "https://www.aibrium.cn/",
+          "text": "Frud's Blog"
+        },
+        {
+          "href": "https://www.aibrium.cn/",
+          "text": "首页"
+        },
+        {
+          "href": "https://www.aibrium.cn/projects",
+          "text": "开源项目"
+        },
+        {
+          "href": "https://www.aibrium.cn/timeline",
+          "text": "归档"
+        },
+        {
+          "href": "https://www.aibrium.cn/photowall",
+          "text": "照片墙"
+        },
+        {
+          "href": "https://www.aibrium.cn/music",
+          "text": "音乐"
+        },
+        {
+          "href": "https://www.aibrium.cn/moments",
+          "text": "说说"
+        },
+        {
+          "href": "https://www.aibrium.cn/chatter",
+          "text": "留言墙"
+        },
+        {
+          "href": "https://www.aibrium.cn/friends",
+          "text": "友链"
+        },
+        {
+          "href": "https://www.aibrium.cn/about",
+          "text": "关于"
+        }
+      ],
+      "landmarks": {
+        "main": 1,
+        "nav": 1,
+        "aside": 0,
+        "article": 0
+      },
+      "layout": {
+        "viewportWidth": 1440,
+        "bodyBackground": "rgba(0, 0, 0, 0)",
+        "bodyColor": "rgb(63, 53, 46)",
+        "mainWidth": 896,
+        "mainLeft": 272
+      },
+      "blockingLoader": {
+        "found": true,
+        "hidden": true,
+        "position": "fixed",
+        "width": 1440,
+        "height": 1100
+      },
+      "screenshot": "artifacts/reference-aibrium/moments-desktop.png"
+    },
+    {
+      "key": "guestbook",
+      "label": "留言墙",
+      "url": "https://www.aibrium.cn/chatter",
+      "title": "Frud's Blog",
+      "headings": [
+        "Frud_",
+        "留言墙",
+        "写一张便签"
+      ],
+      "links": [
+        {
+          "href": "https://www.aibrium.cn/",
+          "text": "Frud's Blog"
+        },
+        {
+          "href": "https://www.aibrium.cn/",
+          "text": "首页"
+        },
+        {
+          "href": "https://www.aibrium.cn/projects",
+          "text": "开源项目"
+        },
+        {
+          "href": "https://www.aibrium.cn/timeline",
+          "text": "归档"
+        },
+        {
+          "href": "https://www.aibrium.cn/photowall",
+          "text": "照片墙"
+        },
+        {
+          "href": "https://www.aibrium.cn/music",
+          "text": "音乐"
+        },
+        {
+          "href": "https://www.aibrium.cn/moments",
+          "text": "说说"
+        },
+        {
+          "href": "https://www.aibrium.cn/chatter",
+          "text": "留言墙"
+        },
+        {
+          "href": "https://www.aibrium.cn/friends",
+          "text": "友链"
+        },
+        {
+          "href": "https://www.aibrium.cn/about",
+          "text": "关于"
+        }
+      ],
+      "landmarks": {
+        "main": 1,
+        "nav": 1,
+        "aside": 0,
+        "article": 11
+      },
+      "layout": {
+        "viewportWidth": 1440,
+        "bodyBackground": "rgba(0, 0, 0, 0)",
+        "bodyColor": "rgb(63, 53, 46)",
+        "mainWidth": 1152,
+        "mainLeft": 144
+      },
+      "blockingLoader": {
+        "found": true,
+        "hidden": true,
+        "position": "fixed",
+        "width": 1440,
+        "height": 1100
+      },
+      "screenshot": "artifacts/reference-aibrium/guestbook-desktop.png"
+    },
+    {
+      "key": "friends",
+      "label": "友链",
+      "url": "https://www.aibrium.cn/friends",
+      "title": "Frud's Blog",
+      "headings": [
+        "友情链接",
+        "Phoenix 's Blog"
+      ],
+      "links": [
+        {
+          "href": "https://www.aibrium.cn/",
+          "text": "Frud's Blog"
+        },
+        {
+          "href": "https://www.aibrium.cn/",
+          "text": "首页"
+        },
+        {
+          "href": "https://www.aibrium.cn/projects",
+          "text": "开源项目"
+        },
+        {
+          "href": "https://www.aibrium.cn/timeline",
+          "text": "归档"
+        },
+        {
+          "href": "https://www.aibrium.cn/photowall",
+          "text": "照片墙"
+        },
+        {
+          "href": "https://www.aibrium.cn/music",
+          "text": "音乐"
+        },
+        {
+          "href": "https://www.aibrium.cn/moments",
+          "text": "说说"
+        },
+        {
+          "href": "https://www.aibrium.cn/chatter",
+          "text": "留言墙"
+        },
+        {
+          "href": "https://www.aibrium.cn/friends",
+          "text": "友链"
+        },
+        {
+          "href": "https://www.aibrium.cn/about",
+          "text": "关于"
+        },
+        {
+          "href": "https://kysonlumen.github.io/",
+          "text": "Phoenix 's Blog"
+        }
+      ],
+      "landmarks": {
+        "main": 1,
+        "nav": 1,
+        "aside": 0,
+        "article": 0
+      },
+      "layout": {
+        "viewportWidth": 1440,
+        "bodyBackground": "rgba(0, 0, 0, 0)",
+        "bodyColor": "rgb(63, 53, 46)",
+        "mainWidth": 896,
+        "mainLeft": 272
+      },
+      "blockingLoader": {
+        "found": false,
+        "hidden": false,
+        "position": "",
+        "width": 0,
+        "height": 0
+      },
+      "screenshot": "artifacts/reference-aibrium/friends-desktop.png"
+    },
+    {
+      "key": "about",
+      "label": "关于",
+      "url": "https://www.aibrium.cn/about",
+      "title": "Frud's Blog",
+      "headings": [
+        "Hello World, I'm Frud_.",
+        "关于这个博客",
+        "研究兴趣",
+        "兴趣爱好",
+        "联系我"
+      ],
+      "links": [
+        {
+          "href": "https://www.aibrium.cn/",
+          "text": "Frud's Blog"
+        },
+        {
+          "href": "https://www.aibrium.cn/",
+          "text": "首页"
+        },
+        {
+          "href": "https://www.aibrium.cn/projects",
+          "text": "开源项目"
+        },
+        {
+          "href": "https://www.aibrium.cn/timeline",
+          "text": "归档"
+        },
+        {
+          "href": "https://www.aibrium.cn/photowall",
+          "text": "照片墙"
+        },
+        {
+          "href": "https://www.aibrium.cn/music",
+          "text": "音乐"
+        },
+        {
+          "href": "https://www.aibrium.cn/moments",
+          "text": "说说"
+        },
+        {
+          "href": "https://www.aibrium.cn/chatter",
+          "text": "留言墙"
+        },
+        {
+          "href": "https://www.aibrium.cn/friends",
+          "text": "友链"
+        },
+        {
+          "href": "https://www.aibrium.cn/about",
+          "text": "关于"
+        },
+        {
+          "href": "https://github.com/pan0918",
+          "text": ""
+        },
+        {
+          "href": "https://x.com/Frudlk3j",
+          "text": ""
+        },
+        {
+          "href": "https://www.xiaohongshu.com/user/profile/619bb654000000001000cd64",
+          "text": ""
+        }
+      ],
+      "landmarks": {
+        "main": 1,
+        "nav": 1,
+        "aside": 0,
+        "article": 0
+      },
+      "layout": {
+        "viewportWidth": 1440,
+        "bodyBackground": "rgba(0, 0, 0, 0)",
+        "bodyColor": "rgb(63, 53, 46)",
+        "mainWidth": 896,
+        "mainLeft": 272
+      },
+      "blockingLoader": {
+        "found": false,
+        "hidden": false,
+        "position": "",
+        "width": 0,
+        "height": 0
+      },
+      "screenshot": "artifacts/reference-aibrium/about-desktop.png"
+    },
+    {
+      "key": "projects",
+      "label": "开源项目",
+      "url": "https://www.aibrium.cn/projects",
+      "title": "Frud's Blog",
+      "headings": [
+        "优质开源项目",
+        "vLLM",
+        "Claude Code Skills",
+        "LightRAG",
+        "veRL",
+        "learning_research",
+        "ProDa"
+      ],
+      "links": [
+        {
+          "href": "https://www.aibrium.cn/",
+          "text": "Frud's Blog"
+        },
+        {
+          "href": "https://www.aibrium.cn/",
+          "text": "首页"
+        },
+        {
+          "href": "https://www.aibrium.cn/projects",
+          "text": "开源项目"
+        },
+        {
+          "href": "https://www.aibrium.cn/timeline",
+          "text": "归档"
+        },
+        {
+          "href": "https://www.aibrium.cn/photowall",
+          "text": "照片墙"
+        },
+        {
+          "href": "https://www.aibrium.cn/music",
+          "text": "音乐"
+        },
+        {
+          "href": "https://www.aibrium.cn/moments",
+          "text": "说说"
+        },
+        {
+          "href": "https://www.aibrium.cn/chatter",
+          "text": "留言墙"
+        },
+        {
+          "href": "https://www.aibrium.cn/friends",
+          "text": "友链"
+        },
+        {
+          "href": "https://www.aibrium.cn/about",
+          "text": "关于"
+        },
+        {
+          "href": "https://github.com/vllm-project/vllm",
+          "text": "📁vLLM高吞吐量、低延迟的 LLM 推理与服务引擎。支持 PagedAttention、连续批处理、张量并行等核心技术，可显著提升大模型部署效率，是当前最流行的大模型推理框架之一。"
+        },
+        {
+          "href": "https://github.com/anthropics/skills",
+          "text": "📁Claude Code SkillsAnthropic 官方发布的 Claude Code Agent Skills 仓库，包含构建 AI Agent 能力的示例、模式与最佳实践，是学习 Agent 开发的权威参考资源。"
+        },
+        {
+          "href": "https://github.com/HKUDS/LightRAG",
+          "text": "📁LightRAG香港大学数据科学实验室开发的轻量级 RAG 框架。基于知识图谱提取与检索，支持增量更新和混合检索，在性能与成本间取得了极佳的平衡。"
+        },
+        {
+          "href": "https://github.com/verl-project/verl",
+          "text": "📁veRL字节跳动火山引擎开源的高效强化学习框架，专为 LLM RLHF 训练设计。支持 PPO、GRPO 等算法，可扩展至多节点分布式训练，是训练高级 LLM 的核心基础设施。"
+        },
+        {
+          "href": "https://github.com/pengsida/learning_research",
+          "text": "📁learning_research系统化的科研方法论与经验总结。涵盖论文阅读、实验设计、写作技巧等科研全流程，是研究生和科研新人的必备指南。"
+        },
+        {
+          "href": "https://github.com/OpenRaiser/ProDa",
+          "text": "📁ProDa面向 AI 训练的数据工程平台，提供从原始语料到高质量训练数据的全流程工具链。支持数据合成、标注、基准测试等，是数据科学与工程的实用 IDE。"
+        }
+      ],
+      "landmarks": {
+        "main": 1,
+        "nav": 1,
+        "aside": 0,
+        "article": 0
+      },
+      "layout": {
+        "viewportWidth": 1440,
+        "bodyBackground": "rgba(0, 0, 0, 0)",
+        "bodyColor": "rgb(63, 53, 46)",
+        "mainWidth": 896,
+        "mainLeft": 272
+      },
+      "blockingLoader": {
+        "found": false,
+        "hidden": false,
+        "position": "",
+        "width": 0,
+        "height": 0
+      },
+      "screenshot": "artifacts/reference-aibrium/projects-desktop.png"
+    }
+  ]
+}

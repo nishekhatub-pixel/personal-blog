@@ -1,0 +1,487 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("MYSQL_DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  EDITOR
+}
+
+enum ContentStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum CommentStatus {
+  PENDING
+  APPROVED
+  HIDDEN
+  SPAM
+}
+
+enum MessageStatus {
+  NEW
+  READ
+  ARCHIVED
+}
+
+enum SubscriberStatus {
+  ACTIVE
+  UNSUBSCRIBED
+}
+
+enum AudioSourceType {
+  UPLOAD
+  REMOTE
+}
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique @db.VarChar(191)
+  name         String    @db.VarChar(120)
+  passwordHash String    @db.VarChar(255)
+  role         UserRole  @default(ADMIN)
+  sessions     Session[]
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+model Session {
+  id         String   @id @default(cuid())
+  tokenHash  String   @unique @db.VarChar(64)
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt  DateTime
+  lastSeenAt DateTime @default(now())
+  ipHash     String?  @db.VarChar(64)
+  userAgent  String?  @db.VarChar(512)
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model LoginAttempt {
+  id        String   @id @default(cuid())
+  key       String   @db.VarChar(191)
+  succeeded Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([key, createdAt])
+}
+
+model Category {
+  id          String   @id @default(cuid())
+  name        String   @unique @db.VarChar(80)
+  slug        String   @unique @db.VarChar(191)
+  description String?  @db.VarChar(500)
+  posts       Post[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Tag {
+  id        String       @id @default(cuid())
+  name      String       @unique @db.VarChar(80)
+  slug      String       @unique @db.VarChar(191)
+  posts     PostTag[]
+  projects  ProjectTag[]
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+}
+
+model Post {
+  id             String        @id @default(cuid())
+  title          String        @db.VarChar(220)
+  slug           String        @unique @db.VarChar(191)
+  excerpt        String        @db.VarChar(500)
+  content        String        @db.LongText
+  coverImage     String?       @db.VarChar(500)
+  coverAlt       String?       @db.VarChar(255)
+  status         ContentStatus @default(DRAFT)
+  featured       Boolean       @default(false)
+  readingMinutes Int           @default(5)
+  viewCount      Int           @default(0)
+  seoTitle       String?       @db.VarChar(220)
+  seoDescription String?       @db.VarChar(500)
+  categoryId     String
+  category       Category      @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  tags           PostTag[]
+  comments       Comment[]
+  pageViews      PageView[]
+  publishedAt    DateTime?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  @@index([status, publishedAt])
+  @@index([categoryId])
+  @@index([featured])
+}
+
+model PostTag {
+  postId String
+  tagId  String
+  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+  tag    Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([postId, tagId])
+  @@index([tagId])
+}
+
+model Project {
+  id             String        @id @default(cuid())
+  title          String        @db.VarChar(220)
+  slug           String        @unique @db.VarChar(191)
+  summary        String        @db.VarChar(500)
+  body           String        @db.LongText
+  coverImage     String?       @db.VarChar(500)
+  coverAlt       String?       @db.VarChar(255)
+  galleryJson    String        @default("[]") @db.LongText
+  technologyJson String        @default("[]") @db.Text
+  demoUrl        String?       @db.VarChar(500)
+  sourceUrl      String?       @db.VarChar(500)
+  status         ContentStatus @default(DRAFT)
+  featured       Boolean       @default(false)
+  seoTitle       String?       @db.VarChar(220)
+  seoDescription String?       @db.VarChar(500)
+  tags           ProjectTag[]
+  pageViews      PageView[]
+  publishedAt    DateTime?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  @@index([status, publishedAt])
+  @@index([featured])
+}
+
+model ProjectTag {
+  projectId String
+  tagId     String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  tag       Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([projectId, tagId])
+  @@index([tagId])
+}
+
+model Media {
+  id             String        @id @default(cuid())
+  originalName   String        @db.VarChar(255)
+  storedName     String        @unique @db.VarChar(191)
+  mimeType       String        @db.VarChar(80)
+  size           Int
+  width          Int?
+  height         Int?
+  alt            String        @db.VarChar(255)
+  url            String        @unique @db.VarChar(500)
+  variantsJson   String        @default("{}") @db.Text
+  albumCovers    PhotoAlbum[]  @relation("PhotoAlbumCover")
+  photos         Photo[]       @relation("PhotoMedia")
+  momentMedia    MomentMedia[] @relation("MomentMediaAsset")
+  musicCovers    MusicTrack[]  @relation("MusicTrackCover")
+  playlistCovers Playlist[]    @relation("PlaylistCover")
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+}
+
+model Comment {
+  id         String        @id @default(cuid())
+  postId     String
+  post       Post          @relation(fields: [postId], references: [id], onDelete: Cascade)
+  parentId   String?
+  parent     Comment?      @relation("CommentReplies", fields: [parentId], references: [id], onDelete: SetNull)
+  replies    Comment[]     @relation("CommentReplies")
+  authorName String        @db.VarChar(100)
+  email      String        @db.VarChar(191)
+  content    String        @db.Text
+  status     CommentStatus @default(PENDING)
+  ipHash     String?       @db.VarChar(64)
+  userAgent  String?       @db.VarChar(512)
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+
+  @@index([postId, status, createdAt])
+  @@index([parentId])
+  @@index([ipHash, createdAt])
+}
+
+model TimelineEvent {
+  id          String   @id @default(cuid())
+  title       String   @db.VarChar(160)
+  description String   @db.VarChar(600)
+  dateLabel   String?  @db.VarChar(80)
+  phase       String   @db.VarChar(80)
+  position    Int      @default(0)
+  visible     Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([visible, position])
+}
+
+model SiteSetting {
+  id        String   @id @default(cuid())
+  key       String   @unique @db.VarChar(191)
+  value     String   @db.LongText
+  group     String   @default("general") @db.VarChar(80)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([group])
+}
+
+model ContactMessage {
+  id        String        @id @default(cuid())
+  name      String        @db.VarChar(100)
+  email     String        @db.VarChar(191)
+  subject   String        @db.VarChar(220)
+  message   String        @db.Text
+  status    MessageStatus @default(NEW)
+  ipHash    String?       @db.VarChar(64)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@index([status, createdAt])
+  @@index([ipHash, createdAt])
+}
+
+model Subscriber {
+  id        String           @id @default(cuid())
+  email     String           @unique @db.VarChar(191)
+  status    SubscriberStatus @default(ACTIVE)
+  ipHash    String?          @db.VarChar(64)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+}
+
+model PageView {
+  id          String   @id @default(cuid())
+  path        String   @db.VarChar(500)
+  visitorHash String?  @db.VarChar(64)
+  postId      String?
+  post        Post?    @relation(fields: [postId], references: [id], onDelete: Cascade)
+  projectId   String?
+  project     Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+
+  @@index([path, createdAt])
+  @@index([postId, createdAt])
+  @@index([projectId, createdAt])
+  @@index([visitorHash, createdAt])
+}
+
+model PhotoAlbum {
+  id           String        @id @default(cuid())
+  title        String        @db.VarChar(160)
+  slug         String        @unique @db.VarChar(191)
+  description  String?       @db.Text
+  coverMediaId String?
+  coverMedia   Media?        @relation("PhotoAlbumCover", fields: [coverMediaId], references: [id], onDelete: SetNull)
+  recordDate   DateTime?
+  city         String?       @db.VarChar(120)
+  featured     Boolean       @default(false)
+  position     Int           @default(0)
+  status       ContentStatus @default(DRAFT)
+  publishedAt  DateTime?
+  photos       Photo[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@index([status, featured, position, publishedAt])
+  @@index([coverMediaId])
+  @@index([recordDate])
+}
+
+model Photo {
+  id          String        @id @default(cuid())
+  albumId     String
+  album       PhotoAlbum    @relation(fields: [albumId], references: [id], onDelete: Cascade)
+  mediaId     String
+  media       Media         @relation("PhotoMedia", fields: [mediaId], references: [id], onDelete: Restrict)
+  alt         String        @db.VarChar(255)
+  caption     String?       @db.Text
+  takenAt     DateTime?
+  location    String?       @db.VarChar(255)
+  position    Int           @default(0)
+  status      ContentStatus @default(DRAFT)
+  publishedAt DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@unique([albumId, mediaId])
+  @@index([albumId, status, position, publishedAt])
+  @@index([mediaId])
+  @@index([takenAt])
+}
+
+model Moment {
+  id          String           @id @default(cuid())
+  content     String           @db.Text
+  mood        String?          @db.VarChar(80)
+  weather     String?          @db.VarChar(120)
+  pinned      Boolean          @default(false)
+  status      ContentStatus    @default(DRAFT)
+  publishedAt DateTime?
+  media       MomentMedia[]
+  comments    MomentComment[]
+  reactions   MomentReaction[]
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@index([status, pinned, publishedAt])
+  @@index([createdAt])
+}
+
+model MomentMedia {
+  id        String   @id @default(cuid())
+  momentId  String
+  moment    Moment   @relation(fields: [momentId], references: [id], onDelete: Cascade)
+  mediaId   String
+  media     Media    @relation("MomentMediaAsset", fields: [mediaId], references: [id], onDelete: Restrict)
+  alt       String   @db.VarChar(255)
+  caption   String?  @db.VarChar(500)
+  position  Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@unique([momentId, mediaId])
+  @@index([momentId, position])
+  @@index([mediaId])
+}
+
+model MomentComment {
+  id         String          @id @default(cuid())
+  momentId   String
+  moment     Moment          @relation(fields: [momentId], references: [id], onDelete: Cascade)
+  parentId   String?
+  parent     MomentComment?  @relation("MomentCommentReplies", fields: [parentId], references: [id], onDelete: SetNull)
+  replies    MomentComment[] @relation("MomentCommentReplies")
+  authorName String          @db.VarChar(100)
+  email      String          @db.VarChar(191)
+  content    String          @db.Text
+  status     CommentStatus   @default(PENDING)
+  ipHash     String?         @db.VarChar(64)
+  userAgent  String?         @db.VarChar(512)
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+
+  @@index([momentId, status, createdAt])
+  @@index([parentId])
+  @@index([ipHash, createdAt])
+}
+
+model MomentReaction {
+  id          String   @id @default(cuid())
+  momentId    String
+  moment      Moment   @relation(fields: [momentId], references: [id], onDelete: Cascade)
+  visitorHash String   @db.VarChar(64)
+  createdAt   DateTime @default(now())
+
+  @@unique([momentId, visitorHash])
+  @@index([momentId, createdAt])
+  @@index([visitorHash, createdAt])
+}
+
+model MusicTrack {
+  id              String          @id @default(cuid())
+  title           String          @db.VarChar(220)
+  artist          String?         @db.VarChar(160)
+  album           String?         @db.VarChar(160)
+  sourceType      AudioSourceType
+  audioUrl        String          @unique @db.VarChar(500)
+  originalName    String?         @db.VarChar(255)
+  storedName      String?         @unique @db.VarChar(191)
+  mimeType        String?         @db.VarChar(80)
+  size            Int?
+  durationSeconds Int?
+  coverMediaId    String?
+  coverMedia      Media?          @relation("MusicTrackCover", fields: [coverMediaId], references: [id], onDelete: SetNull)
+  lyrics          String?         @db.LongText
+  note            String?         @db.Text
+  featured        Boolean         @default(false)
+  favorite        Boolean         @default(false)
+  status          ContentStatus   @default(DRAFT)
+  publishedAt     DateTime?
+  playlists       PlaylistTrack[]
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  @@index([status, featured, favorite, publishedAt])
+  @@index([sourceType])
+  @@index([coverMediaId])
+}
+
+model Playlist {
+  id           String          @id @default(cuid())
+  title        String          @db.VarChar(180)
+  slug         String          @unique @db.VarChar(191)
+  description  String?         @db.Text
+  coverMediaId String?
+  coverMedia   Media?          @relation("PlaylistCover", fields: [coverMediaId], references: [id], onDelete: SetNull)
+  featured     Boolean         @default(false)
+  position     Int             @default(0)
+  status       ContentStatus   @default(DRAFT)
+  publishedAt  DateTime?
+  tracks       PlaylistTrack[]
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  @@index([status, featured, position, publishedAt])
+  @@index([coverMediaId])
+}
+
+model PlaylistTrack {
+  playlistId String
+  playlist   Playlist   @relation(fields: [playlistId], references: [id], onDelete: Cascade)
+  trackId    String
+  track      MusicTrack @relation(fields: [trackId], references: [id], onDelete: Cascade)
+  position   Int        @default(0)
+  note       String?    @db.VarChar(500)
+  addedAt    DateTime   @default(now())
+
+  @@id([playlistId, trackId])
+  @@unique([playlistId, position])
+  @@index([trackId])
+}
+
+model GuestbookMessage {
+  id           String        @id @default(cuid())
+  nickname     String        @db.VarChar(80)
+  content      String        @db.Text
+  website      String?       @db.VarChar(500)
+  colorKey     String        @db.VarChar(32)
+  status       CommentStatus @default(PENDING)
+  pinned       Boolean       @default(false)
+  replyContent String?       @db.Text
+  repliedAt    DateTime?
+  ipHash       String?       @db.VarChar(64)
+  userAgent    String?       @db.VarChar(512)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@index([status, pinned, createdAt])
+  @@index([ipHash, createdAt])
+}
+
+model FriendLink {
+  id          String        @id @default(cuid())
+  name        String        @db.VarChar(120)
+  url         String        @unique @db.VarChar(500)
+  description String        @db.VarChar(500)
+  avatarUrl   String?       @db.VarChar(500)
+  contact     String?       @db.VarChar(255)
+  tagsJson    String        @default("[]") @db.Text
+  featured    Boolean       @default(false)
+  position    Int           @default(0)
+  status      ContentStatus @default(DRAFT)
+  publishedAt DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([status, featured, position, publishedAt])
+}

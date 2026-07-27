@@ -1,0 +1,15 @@
+PRAGMA foreign_keys = OFF;
+
+DROP TABLE IF EXISTS "PlaylistTrack";
+DROP TABLE IF EXISTS "MomentReaction";
+DROP TABLE IF EXISTS "MomentComment";
+DROP TABLE IF EXISTS "MomentMedia";
+DROP TABLE IF EXISTS "Photo";
+DROP TABLE IF EXISTS "Playlist";
+DROP TABLE IF EXISTS "MusicTrack";
+DROP TABLE IF EXISTS "Moment";
+DROP TABLE IF EXISTS "PhotoAlbum";
+DROP TABLE IF EXISTS "GuestbookMessage";
+DROP TABLE IF EXISTS "FriendLink";
+
+PRAGMA foreign_keys = ON;
