@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { once } from "node:events";
-import { existsSync, readFileSync, readdirSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { createServer } from "node:net";
 import path from "node:path";
 
@@ -177,6 +177,7 @@ async function main() {
     ".next/server/app/api/admin/media/route.js.nft.json",
     ".next/server/app/api/media/upload/route.js.nft.json",
   ];
+  const uploadTraceSizesMb: number[] = [];
   for (const relativeTrace of uploadRouteTraces) {
     const tracePath = path.join(root, relativeTrace);
     assert(existsSync(tracePath), `Missing upload trace: ${relativeTrace}`);
@@ -193,16 +194,33 @@ async function main() {
 
     const files = traceFiles(tracePath);
     assert(
-      files.some((file) => file.includes("@img/sharp-linux-x64")),
-      `${relativeTrace} does not include the Linux x64 sharp binary.`,
-    );
-    assert(
       files.some(
         (file) =>
-          file.includes("@img/sharp-libvips-linux-x64") &&
-          file.includes("libvips-cpp.so"),
+          file.includes("@img/sharp-linux-x64") && file.endsWith(".node"),
       ),
-      `${relativeTrace} does not include the Linux x64 libvips shared library.`,
+      `${relativeTrace} does not include the Linux x64 sharp binary.`,
+    );
+    const libvipsFiles = files.filter(
+      (file) =>
+        file.includes("@img/sharp-libvips-linux-x64") &&
+        file.includes("libvips-cpp.so"),
+    );
+    assert.equal(
+      libvipsFiles.length,
+      1,
+      `${relativeTrace} must contain exactly one Linux x64 libvips shared library, not ${libvipsFiles.length}.`,
+    );
+
+    const traceSizeMb =
+      files.reduce((total, file) => {
+        const absolutePath = path.resolve(path.dirname(tracePath), file);
+        return total + (existsSync(absolutePath) ? statSync(absolutePath).size : 0);
+      }, 0) /
+      (1024 * 1024);
+    uploadTraceSizesMb.push(traceSizeMb);
+    assert(
+      traceSizeMb < 200,
+      `${relativeTrace} is ${traceSizeMb.toFixed(2)} MB before the Vercel runtime layer.`,
     );
   }
 
@@ -232,6 +250,7 @@ async function main() {
       encodedBytes: result.data.byteLength,
       protectedAdminPagesWithoutSharp: adminPages.length,
       lazyUploadRoutesWithLinuxRuntime: uploadRouteTraces.length,
+      largestUploadTraceMb: Number(Math.max(...uploadTraceSizesMb).toFixed(2)),
       verifiedLocalRoutes,
     }),
   );
