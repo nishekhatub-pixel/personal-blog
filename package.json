@@ -43,7 +43,7 @@
     "rehype-highlight": "^7.0.2",
     "rehype-sanitize": "^6.0.0",
     "remark-gfm": "^4.0.1",
-    "sharp": "0.34.3",
+    "sharp": "0.35.3",
     "slugify": "^1.6.6",
     "tailwind-merge": "^3.4.0",
     "zod": "^4.1.13"
