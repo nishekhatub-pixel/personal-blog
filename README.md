@@ -2,7 +2,7 @@
 
 R7 Personal Garden V2 是一个数据库驱动的中文个人博客、项目作品集与生活记录站。它在同一个 Next.js 应用中提供公开站点和受保护的管理后台，内容覆盖文章、项目、照片、说说、音乐、留言与友链。
 
-本仓库包含本地 SQLite 开发方案、生产 MySQL 8 schema 与增量迁移、图片和音频上传、审核型公开互动、天气组件、SEO 输出以及自动化测试代码。仓库不包含真实域名、生产数据库、对象存储或任何可用密钥，也不代表已经完成线上部署。
+本仓库包含 PostgreSQL 主 schema、MySQL 8 兼容 schema、图片和音频上传、审核型公开互动、天气组件、SEO 输出以及自动化测试代码。仓库不包含真实域名、生产数据库或任何可用密钥，也不代表已经完成线上部署。
 
 ## 技术栈
 
@@ -10,7 +10,7 @@ R7 Personal Garden V2 是一个数据库驱动的中文个人博客、项目作�
 | --- | --- |
 | Web | Next.js 16 App Router、React 19、TypeScript 5.9 |
 | UI | Tailwind CSS 4、Motion、next-themes、Lucide |
-| 数据 | Prisma 6、本地 SQLite、生产 MySQL 8 |
+| 数据 | Prisma 6、PostgreSQL 主 schema、MySQL 8 兼容 schema |
 | 内容 | react-markdown、remark-gfm、rehype-sanitize、rehype-highlight |
 | 校验与安全 | Zod、bcryptjs、数据库会话、Origin 校验、HMAC 访客标识、数据库限频 |
 | 媒体 | file-type、Sharp、本地持久化图片与音频 |
@@ -94,9 +94,9 @@ R7 Personal Garden V2 是一个数据库驱动的中文个人博客、项目作�
 │     ├─ weather.ts               # Open-Meteo 服务适配
 │     └─ auth.ts / security.ts    # 会话与安全边界
 ├─ prisma/
-│  ├─ schema.prisma               # SQLite schema
+│  ├─ schema.prisma               # PostgreSQL 主 schema
 │  ├─ schema.mysql.prisma         # MySQL 8 schema
-│  ├─ migrations/                 # SQLite V1 + V2 迁移
+│  ├─ migrations/                 # PostgreSQL migrations
 │  ├─ mysql-migrations/           # MySQL V1 + V2 审阅 SQL
 │  └─ seed.ts                     # 幂等初始内容与管理员
 ├─ public/
@@ -115,11 +115,11 @@ R7 Personal Garden V2 是一个数据库驱动的中文个人博客、项目作�
 
 ## 环境要求
 
-- Node.js 20.9 或更高版本；
+- Node.js 24 LTS；
 - pnpm 11，仓库通过 `packageManager` 固定为 `pnpm@11.9.0`；
-- 本地开发无需 MySQL，SQLite 文件默认位于 `prisma/dev.db`；
+- PostgreSQL 作为当前主数据库；
 - Playwright 测试需要 Chromium；
-- 生产环境需要 MySQL 8、HTTPS 根域名和可持久化的上传存储。
+- 生产环境需要 HTTPS 域名和可持久化的上传存储。
 
 ## 本地快速开始
 
@@ -143,7 +143,7 @@ cp .env.example .env
 
 在运行 Seed 前，至少为 `.env` 设置独立的管理员邮箱、管理员长密码、会话 Secret 和 IP 哈希 Secret。不要把 `.env`、本机密码或真实生产凭据提交到 Git，也不要从文档复制所谓“默认登录密码”。
 
-初始化 SQLite：
+初始化 PostgreSQL：
 
 ```bash
 pnpm db:generate
@@ -173,13 +173,15 @@ pnpm dev
 
 | 变量 | 用途与约束 |
 | --- | --- |
-| `DATABASE_URL` | 默认 SQLite 连接串 `file:./dev.db`，供 `prisma/schema.prisma` 使用 |
+| `DATABASE_URL` | PostgreSQL 连接串，供主 schema 与运行时使用 |
 | `MYSQL_DATABASE_URL` | MySQL 8 连接串，只供 `prisma/schema.mysql.prisma` 使用 |
 | `APP_URL` | 唯一公开根地址；参与绝对 URL、Origin 校验和 HTTPS Cookie 判断 |
 | `SESSION_SECRET` | 会话安全 Secret；代码最低 24 字符，生产建议使用至少 32 个高熵字符 |
 | `IP_HASH_SECRET` | 访客/IP HMAC Secret；必须与会话 Secret 不同 |
 | `ADMIN_EMAIL` | Seed 创建或更新管理员时使用 |
 | `ADMIN_PASSWORD` | Seed 计算管理员密码哈希时使用；应为唯一长密码 |
+| `STORAGE_DRIVER` | 当前使用 `local`；`cos` 为预留值，未配置适配器时会拒绝写入 |
+| `UPLOAD_ROOT` | 上传根目录；本地默认 `public/uploads`，生产建议 `/var/www/r7-blog-storage` |
 | `UPLOAD_MAX_BYTES` | 图片上传上限；默认与当前后台界面均为 100 MiB |
 | `AUDIO_UPLOAD_MAX_BYTES` | 音频上传上限；默认 100 MiB，代码允许 1 至 200 MiB |
 
@@ -187,88 +189,38 @@ pnpm dev
 
 天气不需要 API Key。城市名、经纬度、IANA 时区与开关保存在站点设置中。
 
-## SQLite 开发与升级
+## PostgreSQL 与 Prisma
 
-SQLite 的迁移按顺序位于：
-
-```text
-prisma/migrations/202607270001_init/
-prisma/migrations/202607270002_personal_garden_v2/
-```
-
-`pnpm db:deploy` 会应用所有尚未执行的 SQLite 迁移。修改 SQLite schema 时使用：
+当前主 schema 为 `prisma/schema.prisma`，migration 位于
+`prisma/migrations`。开发环境创建 migration：
 
 ```bash
 pnpm db:migrate
 ```
 
-查看数据：
-
-```bash
-pnpm db:studio
-```
-
-`pnpm db:seed` 会幂等写入基础分类、标签、文章、项目、时间线、站点设置和管理员。V2 的初始说说只会在数据库完全没有说说时创建。Seed 不会伪造访客留言、友链、照片、音乐、评论或订阅者，也不会清空用户创建的 V2 内容。
-
-`pnpm db:verify` 输出文章、项目、分类、标签、用户、设置、评论和自动化测试残留的核心快照；它不是 V2 全表完整性检查。
-
-升级已有数据库前先停止使用该文件的开发进程，并同时备份数据库与 `public/uploads`。不要在包含需要保留数据的环境运行 `prisma migrate reset`。
-
-## MySQL 8 生产迁移
-
-生产使用：
-
-- `prisma/schema.mysql.prisma`
-- `MYSQL_DATABASE_URL`
-- `prisma/mysql-migrations/*`
-- `pnpm build:mysql`
-
-SQLite 与 MySQL 的 provider 和 SQL 方言不同。不要把 MySQL URL 写进 `DATABASE_URL`，也不要对 MySQL 运行 `pnpm db:deploy`。
-
-### 全新空库
-
-在空 MySQL 8 数据库中依次执行 V1 初始化和 V2 增量迁移：
-
-```bash
-pnpm db:mysql:generate
-pnpm exec prisma db execute --schema prisma/schema.mysql.prisma --file prisma/mysql-migrations/202607270001_init/migration.sql
-pnpm exec prisma db execute --schema prisma/schema.mysql.prisma --file prisma/mysql-migrations/202607270002_personal_garden_v2/migration.sql
-```
-
-如确实需要仓库内置初始内容，再执行：
-
-```bash
-pnpm db:mysql:seed
-```
-
-生产构建与启动：
-
-```bash
-pnpm build:mysql
-pnpm start
-```
-
-### 已有 V1 数据库
-
-先创建数据库和上传目录的同一恢复点备份，在预发布副本验证后，只应用：
-
-```bash
-pnpm db:mysql:generate
-pnpm exec prisma db execute --schema prisma/schema.mysql.prisma --file prisma/mysql-migrations/202607270002_personal_garden_v2/migration.sql
-pnpm build:mysql
-```
-
-V2 的 `rollback.sql` 会删除新增业务表，仅能在已经导出 V2 数据、应用也同步回退且确认可以丢弃新表时使用。
-
-`pnpm db:mysql:diff` 输出“空库到当前 MySQL schema”的完整差异，只用于审阅，不是可直接反复应用到已有生产库的增量迁移。
-
-如果先生成过 MySQL Prisma Client，回到本地 SQLite 开发前重新运行：
+生产环境只应用已提交 migration：
 
 ```bash
 pnpm db:generate
+pnpm db:deploy
 ```
 
-当前仓库没有内置真实 MySQL 服务、TLS 凭据或生产连接，因此 MySQL 迁移必须在目标基础设施中重新验证。完整边界见 [V2 数据库迁移](docs/v2-database-migration.md)。
+不要在包含需要保留数据的环境执行 `prisma migrate reset`。迁移前必须同时
+备份 PostgreSQL 与 `UPLOAD_ROOT`。
+
+`pnpm db:seed` 会幂等写入基础内容和管理员。Seed 不会伪造访客留言、友链、
+照片、音乐、评论或订阅者，也不会清空用户创建的 V2 内容。对已有环境重复
+运行前应确认 `ADMIN_EMAIL`、`ADMIN_PASSWORD` 并先备份。
+
+MySQL 8 兼容路径仍保留：
+
+- `prisma/schema.mysql.prisma`
+- `prisma/mysql-migrations/*`
+- `MYSQL_DATABASE_URL`
+- `pnpm build:mysql`
+
+MySQL 与 PostgreSQL provider 和 SQL 方言不同，不要混用连接串或 migration。
+完整边界见 [V2 数据库迁移](docs/v2-database-migration.md)。
 
 ## 图片与音频上传
 
@@ -280,14 +232,14 @@ pnpm db:generate
 2. Sharp 解码与 4,000 万像素上限检查；
 3. 自动旋转并重新编码为 WebP；
 4. 生成不放大的 320、640、1200 和 2000 像素宽版本；
-5. 写入 `public/uploads/YYYY/MM`；
+5. 写入 `UPLOAD_ROOT/images/YYYY/MM`，相册照片写入 `photos`；
 6. 将主 URL、尺寸和全部变体写入 `Media`。
 
 删除仍被相册、照片、说说、音乐封面或歌单封面引用的媒体会被拒绝。
 
 ### 音频
 
-本地音频写入 `public/uploads/audio/YYYY/MM`，支持 MP3、M4A、AAC 和 OGG。上传接口会检查：
+本地音频写入 `UPLOAD_ROOT/music/YYYY/MM`，支持 MP3、M4A、AAC 和 OGG。上传接口会检查：
 
 - 管理员会话与同源请求；
 - multipart 类型和配置上限；
@@ -302,9 +254,13 @@ pnpm db:generate
 
 ### 持久化边界
 
-`public/uploads` 中的运行时文件被 Git 忽略。单机部署必须将它挂载到可备份的持久卷；多实例部署必须共享同一存储。
+本地开发默认使用 `public/uploads`。生产通过 `UPLOAD_ROOT` 指向项目目录外
+的持久化目录；数据库只保存 `/uploads/...` 相对公开 URL。旧
+`/uploads/YYYY/MM` 和 `/uploads/audio/YYYY/MM` 地址继续兼容。
 
-当前没有 S3、Cloudflare R2、Vercel Blob 等对象存储适配器。Serverless 或临时文件系统平台在改造存储层前不能可靠使用上传功能。数据库和上传目录必须作为同一恢复点备份，否则会产生失效 URL 或孤立文件。
+当前 `STORAGE_DRIVER=local` 已完整实现，`cos` 仅为未来适配器预留值。单机
+部署必须备份持久目录；多实例部署必须使用共享存储或完成对象存储适配。
+数据库和上传目录必须作为同一恢复点备份，否则会产生失效 URL 或孤立文件。
 
 ## 天气
 
@@ -344,13 +300,14 @@ pnpm test
 pnpm build
 ```
 
-一次运行类型检查、Lint、Vitest 和 SQLite 生产构建：
+一次运行类型检查、Lint、Vitest 和 PostgreSQL 生产构建：
 
 ```bash
 pnpm verify
 ```
 
-Playwright 配置使用已经构建的 `pnpm start`。先生成 SQLite Client 并构建，再运行：
+Playwright 配置使用已经构建的 standalone server。先生成 PostgreSQL
+Prisma Client 并构建，再运行：
 
 ```bash
 pnpm db:generate
@@ -387,24 +344,27 @@ README 不固化历史测试数量，也不把旧报告当作当前提交已经�
 
 ```text
 浏览器
-  └─ HTTPS 反向代理
-       └─ 常驻 Next.js Node 进程
-            ├─ MySQL 8
-            └─ public/uploads 持久卷或已完成接入的对象存储
+  └─ Nginx HTTPS
+       ├─ /uploads/ -> 项目外持久化目录
+       └─ 127.0.0.1:3000
+            └─ PM2 单实例 Next.js standalone
+                 └─ PostgreSQL
 ```
 
 上线前至少需要：
 
-1. 使用迁移账号在预发布副本验证两批 MySQL SQL；
+1. 先只读检查服务器端口、Nginx、PM2、旧 PHP 站点和磁盘；
 2. 为数据库和上传存储创建可恢复备份；
 3. 配置唯一 HTTPS `APP_URL` 和相互独立的 Secrets；
-4. 使用最小权限 MySQL 运行账号；
-5. 使用 `pnpm build:mysql`，不要用默认 SQLite 构建替代；
+4. 使用最小权限 PostgreSQL 运行账号；
+5. 只使用 `prisma migrate deploy` 应用生产 migration；
 6. 配置代理的 Host、转发协议和足够的请求体上限；
 7. 验证登录、公开读取、审核、图片/音频上传、删除和重启后持久化；
 8. 重新运行类型、Lint、单元、端到端、响应式和无障碍检查。
 
-仓库当前没有提供真实生产 MySQL、域名、TLS、共享卷、对象存储、备份恢复演练或长期运行监控结果。
+腾讯云所需配置与从零操作步骤见
+[腾讯云轻量应用服务器部署手册](DEPLOY_TENCENT_CLOUD.md)。仓库不包含真实
+服务器凭据、域名、TLS、数据库密码或长期运行监控结果。
 
 ## 安全要点
 
@@ -423,6 +383,9 @@ README 不固化历史测试数量，也不把旧报告当作当前提交已经�
 
 V2 文档优先：
 
+- [腾讯云轻量应用服务器部署手册](DEPLOY_TENCENT_CLOUD.md)
+- [腾讯云迁移审计](docs/tencent-migration-audit.md)
+- [腾讯云部署准备验证报告](docs/tencent-deployment-testing-report.md)
 - [V2 架构](docs/v2-architecture.md)
 - [V2 数据库迁移与回滚](docs/v2-database-migration.md)
 - [V2 后台指南](docs/v2-admin-guide.md)

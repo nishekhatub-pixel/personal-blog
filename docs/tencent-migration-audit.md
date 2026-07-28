@@ -59,7 +59,7 @@ Next.js 官方说明标准 Node.js server 支持完整 Next.js 功能，standalo
 仓库中的 `vercel.json` 只指定了 pnpm 安装命令。它可以保留用于旧 Vercel
 部署回退，不影响 Ubuntu 上的 standalone 运行。
 
-当前上传实现写入 `public/uploads`。这在 Vercel 临时文件系统上不能作为
+审计时上传实现写入 `public/uploads`。这在 Vercel 临时文件系统上不能作为
 可靠持久存储，也是 100 MB 本地上传在 Vercel Functions 上不能完整落地
 的根本限制之一。腾讯云部署会改为项目目录外的持久化根目录，并继续保存
 `/uploads/...` 相对公开 URL。
@@ -74,7 +74,7 @@ Next.js 官方说明标准 Node.js server 支持完整 Next.js 功能，standalo
 - Linux 必须在服务器上重新安装依赖，不能复制本机 `node_modules`
 - Next.js 图片优化继续开启，不通过关闭优化规避 Sharp 问题
 
-当前文件存储的待改问题：
+审计时文件存储的待改问题（现已由后续提交修复）：
 
 - 图片根目录硬编码为 `public/uploads`
 - 音频根目录硬编码为 `public/uploads/audio`
