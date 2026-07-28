@@ -5,9 +5,10 @@
   "packageManager": "pnpm@11.9.0",
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && next build",
-    "build:mysql": "prisma generate --schema prisma/schema.mysql.prisma && next build",
-    "start": "next start",
+    "build": "prisma generate && next build && node scripts/prepare-standalone.mjs",
+    "build:mysql": "prisma generate --schema prisma/schema.mysql.prisma && next build && node scripts/prepare-standalone.mjs",
+    "start": "node .next/standalone/server.js",
+    "start:next": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
@@ -20,7 +21,7 @@
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
-    "db:seed": "prisma db seed",
+    "db:seed": "tsx prisma/seed.ts",
     "db:verify": "tsx scripts/verify-database.ts",
     "db:studio": "prisma studio",
     "db:mysql:generate": "prisma generate --schema prisma/schema.mysql.prisma",
@@ -73,8 +74,5 @@
     "tsx": "^4.20.6",
     "typescript": "^5.9.3",
     "vitest": "^4.0.15"
-  },
-  "prisma": {
-    "seed": "tsx prisma/seed.ts"
   }
 }

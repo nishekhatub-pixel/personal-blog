@@ -13,7 +13,11 @@ export default defineConfig({
     screenshot: "only-on-failure",
   },
   webServer: {
-    command: `"${process.execPath}" node_modules/next/dist/bin/next start -p 3000`,
+    command: `"${process.execPath}" .next/standalone/server.js`,
+    env: {
+      HOSTNAME: "127.0.0.1",
+      PORT: "3000",
+    },
     url: "http://127.0.0.1:3000",
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,

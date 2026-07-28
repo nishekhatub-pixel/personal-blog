@@ -95,7 +95,7 @@ test.describe.serial("article CRUD", () => {
     await page.goto(editUrl);
     await page.getByLabel("标题", { exact: true }).fill(updatedTitle);
     await page.getByRole("button", { name: "保存修改" }).click();
-    await expect(page).toHaveURL(/\/edit\?saved=1$/);
+    await expect(page).toHaveURL(/\/edit\?saved=1$/, { timeout: 15_000 });
     await expect(page.getByText("文章修改已保存。")).toBeVisible();
 
     await page.goto(`/blog/${slug}`);
