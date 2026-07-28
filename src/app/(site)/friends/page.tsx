@@ -1,6 +1,7 @@
 import { ArrowUpRight, Link2, LockKeyhole, Star } from "lucide-react";
 import type { Metadata } from "next";
 import { FriendApplicationForm } from "@/components/site/friends/friend-application-form";
+import { PageIntro } from "@/components/site/page-intro";
 import { getSiteSettings } from "@/lib/data";
 import { getPublishedFriendLinks } from "@/lib/garden-data";
 
@@ -28,19 +29,11 @@ export default async function FriendsPage() {
 
   return (
     <main id="main-content">
-      <header className="px-[var(--page-gutter)] pb-12 pt-[clamp(3.5rem,8vw,7rem)]">
-        <div className="mx-auto max-w-[var(--content-max)]">
-          <p className="mb-4 text-sm font-semibold text-[var(--accent)]">
-            朋友站点
-          </p>
-          <h1 className="max-w-4xl text-[clamp(3rem,7vw,6rem)] font-black leading-[.92] tracking-[-.07em]">
-            友链
-          </h1>
-          <p className="mt-6 max-w-[58ch] text-lg leading-8 text-[var(--muted)]">
-            这里收录我真实阅读和认识的个人站点。每一条链接都经过审核，不用示例站点填充数量。
-          </p>
-        </div>
-      </header>
+      <PageIntro
+        eyebrow="朋友站点"
+        title="友链"
+        description="这里收录我真实阅读和认识的个人站点。每一条链接都经过审核，不用示例站点填充数量。"
+      />
 
       <section className="px-[var(--page-gutter)] pb-[clamp(5rem,10vw,9rem)]">
         <div className="mx-auto grid max-w-[var(--content-max)] gap-12 xl:grid-cols-[minmax(0,1.35fr)_minmax(22rem,.8fr)] xl:items-start">
@@ -55,7 +48,7 @@ export default async function FriendsPage() {
             </div>
 
             {links.length ? (
-              <ol className="mt-3 grid gap-x-6 md:grid-cols-2">
+              <ol className="mt-6 grid gap-5 md:grid-cols-2">
                 {links.map((link, index) => (
                   <li
                     key={link.id}
@@ -63,7 +56,7 @@ export default async function FriendsPage() {
                       link.featured && index === 0 ? "md:col-span-2" : ""
                     }
                   >
-                    <article className="group flex h-full min-w-0 flex-col border-b border-[var(--line)] py-7">
+                    <article className="garden-card group flex h-full min-w-0 flex-col p-6">
                       <div className="flex items-start gap-4">
                         {link.avatarUrl ? (
                           // eslint-disable-next-line @next/next/no-img-element
@@ -134,7 +127,7 @@ export default async function FriendsPage() {
                 ))}
               </ol>
             ) : (
-              <div className="grid min-h-80 place-items-center border-b border-[var(--line)] px-6 text-center">
+              <div className="garden-panel grid min-h-80 place-items-center px-6 text-center">
                 <div className="max-w-lg">
                   <Link2
                     aria-hidden
@@ -157,7 +150,7 @@ export default async function FriendsPage() {
             {formEnabled ? (
               <FriendApplicationForm />
             ) : (
-              <div className="rounded-[var(--radius-panel,1.125rem)] border border-[var(--line)] bg-[var(--surface)] p-7 shadow-[var(--shadow)]">
+              <div className="garden-panel p-7">
                 <LockKeyhole
                   aria-hidden
                   className="text-[var(--accent)]"

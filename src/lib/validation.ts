@@ -20,7 +20,9 @@ export const optionalAssetUrlSchema = z
   .refine(
     (value) =>
       value === "" ||
-      /^\/uploads\/[a-zA-Z0-9/_-]+\.(?:avif|jpe?g|png|webp)$/i.test(value) ||
+      /^\/(?:uploads|images)\/[a-zA-Z0-9/_.-]+\.(?:avif|gif|heic|heif|jpe?g|png|tiff?|webp|svg)$/i.test(
+        value,
+      ) ||
       isSafeExternalUrl(value),
     "图片必须来自媒体库或使用安全的 HTTPS 链接",
   )
@@ -132,7 +134,12 @@ export const siteSettingsSchema = z.object({
     .trim()
     .url()
     .max(500)
-    .refine((value) => isSafeExternalUrl(value), "站点链接必须使用 HTTPS"),
+    .refine(
+      (value) =>
+        isSafeExternalUrl(value) ||
+        /^http:\/\/(?:localhost|127\.0\.0\.1)(?::\d{1,5})?$/i.test(value),
+      "站点链接必须使用 HTTPS；本地开发可使用 localhost",
+    ),
   authorName: z.string().trim().min(1).max(80),
   authorBio: z.string().trim().max(800),
   contactEmail: z.union([z.literal(""), emailSchema]),

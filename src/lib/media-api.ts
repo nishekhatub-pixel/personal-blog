@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { env } from "@/lib/env";
 import { assertSameOrigin } from "@/lib/security";
 
 export async function listMediaResponse(request: Request) {
@@ -22,7 +23,37 @@ export async function uploadMediaResponse(request: Request) {
     const user = await getCurrentUser();
     if (!user || user.role !== "ADMIN") return NextResponse.json({ error: "未登录。" }, { status: 401 });
 
-    const formData = await request.formData();
+    const contentType = request.headers.get("content-type") ?? "";
+    if (!contentType.toLocaleLowerCase("en-US").startsWith("multipart/form-data")) {
+      return NextResponse.json(
+        { error: "请使用 multipart/form-data 上传本地图片文件。" },
+        { status: 415 },
+      );
+    }
+    const contentLength = Number(request.headers.get("content-length"));
+    if (
+      Number.isFinite(contentLength) &&
+      contentLength > env.UPLOAD_MAX_BYTES + 1024 * 1024
+    ) {
+      return NextResponse.json(
+        {
+          error: `图片不能超过 ${Math.floor(
+            env.UPLOAD_MAX_BYTES / 1024 / 1024,
+          )} MB。`,
+        },
+        { status: 413 },
+      );
+    }
+
+    let formData: FormData;
+    try {
+      formData = await request.formData();
+    } catch {
+      return NextResponse.json(
+        { error: "上传内容不是有效的 multipart 表单。" },
+        { status: 400 },
+      );
+    }
     const file = formData.get("file");
     const alt = formData.get("alt");
     if (!(file instanceof File)) return NextResponse.json({ error: "请选择图片文件。" }, { status: 400 });
@@ -31,6 +62,11 @@ export async function uploadMediaResponse(request: Request) {
     return NextResponse.json({ media }, { status: 201 });
   } catch (error) {
     const message = error instanceof Error ? error.message : "上传失败。";
-    return NextResponse.json({ error: message }, { status: message.includes("来源") ? 403 : 400 });
+    const status = message.includes("来源")
+      ? 403
+      : message.includes("不能超过")
+        ? 413
+        : 400;
+    return NextResponse.json({ error: message }, { status });
   }
 }

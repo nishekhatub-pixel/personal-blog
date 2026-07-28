@@ -15,7 +15,7 @@ function CommentItem({ comment, postId, allowReply = true }: { comment: PublicCo
         <p className="mt-4 whitespace-pre-wrap leading-7 text-[var(--muted)]">{comment.content}</p>
         {allowReply ? (
           <details className="mt-5">
-            <summary className="cursor-pointer text-sm font-semibold text-[var(--success)]">回复这条评论</summary>
+            <summary className="cursor-pointer text-sm font-semibold text-[var(--accent)]">回复这条评论</summary>
             <div className="mt-4">
               <CommentForm postId={postId} parentId={comment.id} />
             </div>

@@ -12,6 +12,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { OrbitingCircles } from "@/components/site/about/orbiting-circles";
+import { PageIntro } from "@/components/site/page-intro";
 import type { TimelineItem } from "@/components/content/content-types";
 import { getSiteSettings, getTimelineEvents } from "@/lib/data";
 
@@ -37,38 +38,42 @@ export default async function AboutPage() {
 
   return (
     <main id="main-content">
-      <header className="px-[clamp(1rem,4vw,4rem)] py-[clamp(4rem,10vw,9rem)]">
-        <div className="mx-auto grid max-w-[1280px] gap-12 lg:grid-cols-12 lg:items-center">
-          <div className="lg:col-span-7">
-            <p className="text-sm font-semibold text-[var(--accent)]">关于我</p>
-            <h1 className="mt-5 text-[clamp(3.5rem,8vw,7.4rem)] font-black leading-[.91] tracking-[-.075em]">
-              一边学习，
-              <br />
-              一边把东西做出来。
-            </h1>
-            <p className="mt-8 max-w-2xl text-lg leading-9 text-[var(--muted)]">
-              我是 R7，一名软件技术专业学生。这里不包装一份“已经完成”的履历，而是如实记录 Java、JavaScript、MySQL、数据结构和前端学习怎样一点点进入真实项目。
-            </p>
-            {settings.nowText ? (
-              <p className="mt-5 max-w-2xl border-l-2 border-[var(--accent)] pl-4 text-sm leading-7 text-[var(--muted)]">
-                此刻：{settings.nowText}
-              </p>
-            ) : null}
-            <Link href="/now" className="mt-8 inline-flex min-h-11 items-center gap-2 font-semibold text-[var(--accent)]">
+      <PageIntro
+        eyebrow="关于我"
+        title="一边学习，一边把东西做出来"
+        description="我是 R7，一名软件技术专业学生。这里不包装一份“已经完成”的履历，而是如实记录 Java、JavaScript、MySQL、数据结构和前端学习怎样一点点进入真实项目。"
+        actions={
+            <Link href="/now" className="inline-flex min-h-11 items-center gap-2 font-semibold text-[var(--accent)]">
               看我此刻在做什么 <ArrowRight aria-hidden size={18} />
             </Link>
-          </div>
-          <div className="relative aspect-[4/5] overflow-hidden rounded-xl bg-[var(--surface-strong)] lg:col-span-4 lg:col-start-9">
+        }
+      />
+
+      <section className="px-[var(--page-gutter)] pb-[clamp(4rem,8vw,7rem)]">
+        <div className="mx-auto grid max-w-[1180px] gap-5 lg:grid-cols-[minmax(0,1.25fr)_minmax(18rem,.75fr)]">
+          <div className="garden-panel relative aspect-[16/10] overflow-hidden">
             <Image src="/images/r7-about-study.png" alt="R7 坐在电脑与钢琴之间学习和记录" fill priority sizes="(max-width: 1024px) 100vw, 34vw" className="object-cover" />
-            <div className="absolute inset-x-0 bottom-0 bg-[#F3F1EA]/95 p-6 text-[#151816]">
-              <p className="font-mono text-xs text-[#626B65]">SOFTWARE TECHNOLOGY STUDENT</p>
+            <div className="absolute inset-x-0 bottom-0 bg-[var(--surface)] p-6 text-[var(--ink)] opacity-95">
+              <p className="font-mono text-xs text-[var(--muted)]">SOFTWARE TECHNOLOGY STUDENT</p>
               <p className="mt-2 font-semibold">R7 · 数字花园持续维护中</p>
             </div>
           </div>
+          <div className="garden-panel flex flex-col justify-between p-7">
+            <div>
+              <p className="page-intro__eyebrow">NOW</p>
+              <h2 className="text-2xl font-semibold tracking-[-.04em]">此刻的生长状态</h2>
+              <p className="mt-4 leading-8 text-[var(--muted)]">
+                {settings.nowText || "持续整理学习笔记，并把知识放进真实项目里验证。"}
+              </p>
+            </div>
+            <Link href="/moments" className="mt-8 inline-flex min-h-11 items-center gap-2 font-semibold text-[var(--accent)]">
+              查看最近片段 <ArrowRight aria-hidden size={18} />
+            </Link>
+          </div>
         </div>
-      </header>
+      </section>
 
-      <section className="border-y border-[var(--line)] px-[clamp(1rem,4vw,4rem)] py-[clamp(5rem,10vw,9rem)]" aria-labelledby="journey-heading">
+      <section className="soft-section border-y border-[var(--line)] px-[var(--page-gutter)] py-[clamp(5rem,10vw,9rem)]" aria-labelledby="journey-heading">
         <div className="mx-auto max-w-[1180px]">
           <h2 id="journey-heading" className="text-[clamp(2.5rem,5vw,4.7rem)] font-semibold tracking-[-.06em]">我的学习回路</h2>
           <div className="mt-14 grid gap-0 md:grid-cols-4">
@@ -88,7 +93,7 @@ export default async function AboutPage() {
         </div>
       </section>
 
-      <section className="px-[clamp(1rem,4vw,4rem)] py-[clamp(5rem,11vw,10rem)]" aria-labelledby="skills-heading">
+      <section className="px-[var(--page-gutter)] py-[clamp(5rem,11vw,10rem)]" aria-labelledby="skills-heading">
         <div className="mx-auto grid max-w-[1280px] gap-12 lg:grid-cols-12 lg:items-center">
           <div className="lg:col-span-3">
             <Keyboard className="text-[var(--accent)]" aria-hidden size={32} strokeWidth={1.5} />
@@ -113,7 +118,7 @@ export default async function AboutPage() {
         </div>
       </section>
 
-      <section className="border-y border-[var(--line)] px-[clamp(1rem,4vw,4rem)] py-[clamp(5rem,10vw,9rem)]" aria-labelledby="projects-about">
+      <section className="border-y border-[var(--line)] px-[var(--page-gutter)] py-[clamp(5rem,10vw,9rem)]" aria-labelledby="projects-about">
         <div className="mx-auto max-w-[1280px]">
           <div className="grid gap-6 lg:grid-cols-12 lg:items-end">
             <div className="lg:col-span-6">
@@ -126,13 +131,13 @@ export default async function AboutPage() {
               我做过 PHP + MySQL 博客练习，也在构建 Java 图书管理系统；R7 Digital Garden 则把内容、数据库、权限、上传、测试和部署放进同一个长期维护的项目。
             </p>
           </div>
-          <div className="mt-12 grid border-l border-t border-[var(--line)] md:grid-cols-3">
+          <div className="mt-12 grid gap-4 md:grid-cols-3">
             {[
               ["PHP + MySQL 博客", "理解页面、表单和数据库怎样组成最早的完整内容系统。"],
               ["Java 图书管理系统", "练习面向对象、数据建模和清晰的业务状态。"],
               ["R7 Digital Garden", "持续整合 Next.js、Prisma、SQLite/MySQL 与自动化测试。"],
             ].map(([title, description]) => (
-              <article className="border-b border-r border-[var(--line)] p-6 md:min-h-56" key={title}>
+              <article className="garden-card p-6 md:min-h-56" key={title}>
                 <h3 className="text-2xl font-semibold tracking-[-.04em]">{title}</h3>
                 <p className="mt-5 leading-7 text-[var(--muted)]">{description}</p>
               </article>
@@ -144,11 +149,11 @@ export default async function AboutPage() {
         </div>
       </section>
 
-      <section className="bg-[var(--surface-strong)] px-[clamp(1rem,4vw,4rem)] py-[clamp(5rem,10vw,9rem)]" aria-labelledby="interests-about">
+      <section className="soft-section px-[var(--page-gutter)] py-[clamp(5rem,10vw,9rem)]" aria-labelledby="interests-about">
         <div className="mx-auto max-w-[1280px]">
           <h2 id="interests-about" className="text-[clamp(2.5rem,5vw,4.5rem)] font-semibold tracking-[-.06em]">代码之外</h2>
           <div className="mt-12 space-y-3">
-            <details className="group rounded-xl bg-[var(--canvas)] p-6 open:pb-8 md:p-8">
+            <details className="garden-card group p-6 open:pb-8 md:p-8">
               <summary className="flex cursor-pointer list-none items-center justify-between gap-5">
                 <span className="flex items-center gap-4 text-3xl font-semibold tracking-[-.045em]"><Headphones aria-hidden size={28} strokeWidth={1.5} /> 音乐与钢琴</span>
                 <span className="font-mono text-sm text-[var(--accent)] group-open:hidden">展开</span>
@@ -156,7 +161,7 @@ export default async function AboutPage() {
               </summary>
               <p className="mt-7 max-w-3xl text-lg leading-8 text-[var(--muted)]">我喜欢钢琴、唱歌和认真听歌。音乐让我重新理解节奏、重复和细微变化；练琴与调试代码很像，重要的不只是最终正确，也包括辨认错误发生在哪一拍。</p>
             </details>
-            <details className="group rounded-xl bg-[var(--canvas)] p-6 open:pb-8 md:p-8">
+            <details className="garden-card group p-6 open:pb-8 md:p-8">
               <summary className="flex cursor-pointer list-none items-center justify-between gap-5">
                 <span className="flex items-center gap-4 text-3xl font-semibold tracking-[-.045em]"><Dumbbell aria-hidden size={28} strokeWidth={1.5} /> 运动与恢复</span>
                 <span className="font-mono text-sm text-[var(--accent)] group-open:hidden">展开</span>
@@ -164,7 +169,7 @@ export default async function AboutPage() {
               </summary>
               <p className="mt-7 max-w-3xl text-lg leading-8 text-[var(--muted)]">篮球、羽毛球、乒乓球和台球让我从屏幕抽离，把注意力和精力重新放回身体，再以更清楚的状态面对问题。</p>
             </details>
-            <details className="group rounded-xl bg-[var(--canvas)] p-6 open:pb-8 md:p-8">
+            <details className="garden-card group p-6 open:pb-8 md:p-8">
               <summary className="flex cursor-pointer list-none items-center justify-between gap-5">
                 <span className="flex items-center gap-4 text-3xl font-semibold tracking-[-.045em]"><BookOpenText aria-hidden size={28} strokeWidth={1.5} /> 阅读与生活</span>
                 <span className="font-mono text-sm text-[var(--accent)] group-open:hidden">展开</span>
@@ -176,7 +181,7 @@ export default async function AboutPage() {
         </div>
       </section>
 
-      <section className="bg-[var(--surface)] px-[clamp(1rem,4vw,4rem)] py-[clamp(4rem,8vw,7rem)]" aria-labelledby="site-technology">
+      <section className="px-[var(--page-gutter)] py-[clamp(4rem,8vw,7rem)]" aria-labelledby="site-technology">
         <div className="mx-auto grid max-w-[1180px] gap-8 lg:grid-cols-12">
           <div className="lg:col-span-4">
             <h2 id="site-technology" className="text-3xl font-semibold tracking-[-.05em]">这座花园怎样运行</h2>
@@ -198,7 +203,7 @@ export default async function AboutPage() {
         </div>
       </section>
 
-      <section className="px-[clamp(1rem,4vw,4rem)] py-[clamp(5rem,11vw,10rem)]" aria-labelledby="goals-heading">
+      <section className="px-[var(--page-gutter)] py-[clamp(5rem,11vw,10rem)]" aria-labelledby="goals-heading">
         <div className="mx-auto max-w-[1280px]">
           <div className="grid gap-8 lg:grid-cols-12">
             <h2 id="goals-heading" className="text-[clamp(2.5rem,5vw,4.5rem)] font-semibold leading-none tracking-[-.06em] lg:col-span-5">现在想做好的事</h2>
@@ -209,7 +214,7 @@ export default async function AboutPage() {
                 "持续写清楚技术选择背后的理由",
                 "参与一次真实的开源协作",
               ].map((goal, index) => (
-                <article key={goal} className={`rounded-xl p-6 ${index === 0 ? "bg-[var(--accent)] text-[var(--accent-ink)] sm:col-span-2" : "border border-[var(--line)]"}`}>
+                <article key={goal} className={`p-6 ${index === 0 ? "rounded-[var(--radius-panel)] bg-[var(--accent)] text-[var(--accent-ink)] shadow-[var(--shadow)] sm:col-span-2" : "garden-card"}`}>
                   <PencilRuler aria-hidden size={22} strokeWidth={1.5} />
                   <h3 className="mt-8 text-2xl font-semibold tracking-[-.04em]">{goal}</h3>
                 </article>
@@ -220,7 +225,7 @@ export default async function AboutPage() {
       </section>
 
       {timeline.length ? (
-        <section className="border-t border-[var(--line)] px-[clamp(1rem,4vw,4rem)] py-16">
+        <section className="border-t border-[var(--line)] px-[var(--page-gutter)] py-16">
           <div className="mx-auto flex max-w-[1280px] flex-wrap items-center justify-between gap-5">
             <p className="font-semibold">想从时间线继续了解？</p>
             <Link href="/now" className="inline-flex min-h-11 items-center gap-2 text-[var(--accent)] font-semibold">查看当前状态 <ArrowRight aria-hidden size={18} /></Link>
@@ -228,7 +233,7 @@ export default async function AboutPage() {
         </section>
       ) : null}
 
-      <section className="bg-[var(--accent-soft)] px-[clamp(1rem,4vw,4rem)] py-[clamp(4rem,8vw,7rem)]">
+      <section className="soft-section px-[var(--page-gutter)] py-[clamp(4rem,8vw,7rem)]">
         <div className="mx-auto flex max-w-[1180px] flex-col gap-7 md:flex-row md:items-center md:justify-between">
           <div>
             <Mail className="text-[var(--accent)]" aria-hidden size={28} strokeWidth={1.5} />

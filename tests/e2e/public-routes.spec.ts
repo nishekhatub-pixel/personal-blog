@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 import { expectHealthyPage } from "./helpers";
 
 const publicRoutes: Array<{ path: string; heading: string | RegExp }> = [
-  { path: "/", heading: /把成长写进/ },
+  { path: "/", heading: "R7 Digital Garden" },
   { path: "/blog", heading: "文章" },
   {
     path: "/blog/array-to-linked-list-tradeoffs",
@@ -11,12 +11,12 @@ const publicRoutes: Array<{ path: string; heading: string | RegExp }> = [
   { path: "/archive", heading: "归档" },
   { path: "/categories", heading: "分类" },
   { path: "/tags", heading: "标签" },
-  { path: "/projects", heading: /构建.*然后复盘/ },
+  { path: "/projects", heading: "把学习做成作品" },
   { path: "/projects/r7-digital-garden", heading: "R7 数字花园" },
   { path: "/photos", heading: "照片墙" },
-  { path: "/music", heading: "音乐" },
+  { path: "/music", heading: "云端乐律" },
   { path: "/moments", heading: "说说" },
-  { path: "/guestbook", heading: "留言墙" },
+  { path: "/guestbook", heading: "留下你的足迹" },
   { path: "/friends", heading: "友链" },
   { path: "/calendar", heading: /\d{4}年\d{1,2}月\d{1,2}日/ },
   { path: "/about", heading: /一边学习.*一边把东西做出来/ },

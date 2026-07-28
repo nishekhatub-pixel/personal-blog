@@ -15,7 +15,13 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useCallback } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { Backlight } from "@/components/site/music/backlight";
 import { useAudioPlayer } from "@/components/site/music/audio-player-provider";
 
@@ -26,20 +32,157 @@ function formatTime(value: number) {
   return `${minutes}:${String(seconds).padStart(2, "0")}`;
 }
 
+type TimedLyricLine = {
+  text: string;
+  time: number;
+};
+
+function parseLyrics(value: string | null) {
+  if (!value?.trim()) {
+    return { plain: [] as string[], timed: [] as TimedLyricLine[] };
+  }
+
+  const timed: TimedLyricLine[] = [];
+  const plain: string[] = [];
+  const timestampPattern = /\[(\d{1,3}):(\d{2})(?:[.:](\d{1,3}))?]/g;
+
+  for (const rawLine of value.split(/\r?\n/)) {
+    const matches = [...rawLine.matchAll(timestampPattern)];
+    const text = rawLine.replace(timestampPattern, "").trim();
+    if (matches.length && text) {
+      for (const match of matches) {
+        const minutes = Number(match[1]);
+        const seconds = Number(match[2]);
+        const fraction = match[3] ?? "0";
+        const milliseconds =
+          fraction.length === 3
+            ? Number(fraction)
+            : fraction.length === 2
+              ? Number(fraction) * 10
+              : Number(fraction) * 100;
+        timed.push({
+          text,
+          time: minutes * 60 + seconds + milliseconds / 1000,
+        });
+      }
+    } else if (text && !/^\[[a-z]+:/i.test(text)) {
+      plain.push(text);
+    }
+  }
+
+  timed.sort((left, right) => left.time - right.time);
+  return { plain, timed };
+}
+
+function LyricsPanel({
+  currentTime,
+  lyrics,
+}: {
+  currentTime: number;
+  lyrics: string | null;
+}) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const activeLineRef = useRef<HTMLParagraphElement>(null);
+  const parsed = useMemo(() => parseLyrics(lyrics), [lyrics]);
+  let activeIndex = -1;
+  for (let index = 0; index < parsed.timed.length; index += 1) {
+    if (parsed.timed[index].time <= currentTime + 0.08) activeIndex = index;
+    else break;
+  }
+
+  useEffect(() => {
+    const container = containerRef.current;
+    const line = activeLineRef.current;
+    if (!container || !line || activeIndex < 0) return;
+    const targetTop =
+      line.offsetTop - container.clientHeight / 2 + line.clientHeight / 2;
+    container.scrollTo({
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+        ? "auto"
+        : "smooth",
+      top: Math.max(0, targetTop),
+    });
+  }, [activeIndex]);
+
+  if (!parsed.timed.length && !parsed.plain.length) {
+    return (
+      <div className="grid min-h-72 place-items-center px-6 text-center text-sm leading-7 text-[var(--muted)]">
+        <p>
+          当前曲目没有可读取的歌词。可在后台粘贴 LRC，或上传带内嵌歌词标签的音频。
+        </p>
+      </div>
+    );
+  }
+
+  if (!parsed.timed.length) {
+    return (
+      <div className="max-h-[31rem] overflow-y-auto px-2 py-5">
+        <div className="space-y-4 text-center text-sm leading-8 text-[var(--muted)]">
+          {parsed.plain.map((line, index) => (
+            <p key={`${line}-${index}`}>{line}</p>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      aria-label="同步歌词"
+      className="max-h-[31rem] scroll-py-36 overflow-y-auto px-2 py-28"
+      ref={containerRef}
+    >
+      <div className="space-y-5 text-center">
+        {parsed.timed.map((line, index) => {
+          const active = index === activeIndex;
+          return (
+            <p
+              aria-current={active ? "true" : undefined}
+              className={[
+                "text-sm leading-8 transition-[color,transform,opacity] duration-300",
+                active
+                  ? "scale-[1.04] font-semibold text-[var(--accent)]"
+                  : "text-[var(--muted)] opacity-65",
+              ].join(" ")}
+              key={`${line.time}-${line.text}-${index}`}
+              ref={active ? activeLineRef : undefined}
+            >
+              {line.text}
+            </p>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function Cover({
   alt,
   compact = false,
+  playing = false,
   url,
+  vinyl = false,
 }: {
   alt: string;
   compact?: boolean;
+  playing?: boolean;
   url: string | null;
+  vinyl?: boolean;
 }) {
   return (
     <div
       className={[
-        "relative shrink-0 overflow-hidden rounded-[var(--radius-media,0.75rem)] bg-[var(--surface-strong)]",
-        compact ? "size-16" : "aspect-square w-full",
+        "relative shrink-0 overflow-hidden bg-[var(--surface-strong)]",
+        compact
+          ? "size-16 rounded-[var(--radius-media)]"
+          : vinyl
+            ? "mx-auto aspect-square w-full max-w-[21rem] rounded-full border-[10px] border-[color-mix(in_srgb,var(--ink)_88%,transparent)] shadow-[0_22px_55px_rgba(54,42,39,.22)] motion-safe:animate-[spin_18s_linear_infinite] motion-reduce:animate-none"
+            : "aspect-square w-full rounded-[var(--radius-media)]",
+        vinyl
+          ? playing
+            ? "[animation-play-state:running]"
+            : "[animation-play-state:paused]"
+          : "",
       ].join(" ")}
     >
       {url ? (
@@ -61,6 +204,14 @@ function Cover({
           </span>
         </div>
       )}
+      {vinyl ? (
+        <span
+          aria-hidden="true"
+          className="absolute left-1/2 top-1/2 grid size-[18%] -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border-4 border-[color-mix(in_srgb,var(--surface)_72%,transparent)] bg-[var(--surface-strong)] shadow-[0_2px_10px_rgba(20,16,18,.24)]"
+        >
+          <span className="size-2 rounded-full bg-[var(--ink)]" />
+        </span>
+      ) : null}
     </div>
   );
 }
@@ -175,8 +326,8 @@ function EmptyPlayer({ compact = false }: { compact?: boolean }) {
   return (
     <div
       className={[
-        "border border-dashed border-[var(--line)] bg-[var(--surface)] text-[var(--muted)]",
-        compact ? "rounded-[1.125rem] p-5" : "rounded-[1.125rem] p-8",
+        "garden-panel border-dashed text-[var(--muted)]",
+        compact ? "p-5" : "p-8",
       ].join(" ")}
     >
       <ListMusic aria-hidden="true" size={compact ? 23 : 30} strokeWidth={1.5} />
@@ -231,7 +382,7 @@ export function CompactAudioPlayer({ className = "" }: { className?: string }) {
     <section
       aria-label="全站音乐播放器"
       className={[
-        "rounded-[1.125rem] border border-[var(--line)] bg-[var(--surface)] p-4 shadow-[var(--shadow)]",
+        "garden-panel p-4",
         className,
       ].join(" ")}
       onKeyDown={(event) => keyboardHandler(event, player)}
@@ -280,6 +431,7 @@ export function CompactAudioPlayer({ className = "" }: { className?: string }) {
 export function FullAudioPlayer({ className = "" }: { className?: string }) {
   const player = useAudioPlayer();
   const {
+    currentTime,
     currentTrack,
     cycleLoopMode,
     error,
@@ -290,6 +442,7 @@ export function FullAudioPlayer({ className = "" }: { className?: string }) {
     shuffle,
     toggleShuffle,
   } = player;
+  const [panelMode, setPanelMode] = useState<"lyrics" | "queue">("lyrics");
   const select = useCallback(
     (trackId: string) => {
       void selectTrack(trackId, isPlaying);
@@ -310,7 +463,7 @@ export function FullAudioPlayer({ className = "" }: { className?: string }) {
     <section
       aria-label="音乐播放器与播放队列"
       className={[
-        "grid gap-6 rounded-[1.125rem] border border-[var(--line)] bg-[var(--surface)] p-5 shadow-[var(--shadow)] lg:grid-cols-[minmax(15rem,0.8fr)_minmax(0,1.2fr)] lg:p-7",
+        "garden-panel soft-section grid gap-6 p-5 lg:grid-cols-[minmax(17rem,0.82fr)_minmax(0,1.18fr)] lg:p-8",
         className,
       ].join(" ")}
       onKeyDown={(event) => keyboardHandler(event, player)}
@@ -322,7 +475,9 @@ export function FullAudioPlayer({ className = "" }: { className?: string }) {
         >
           <Cover
             alt={currentTrack.coverAlt || `${currentTrack.title} 封面`}
+            playing={isPlaying}
             url={currentTrack.coverUrl}
+            vinyl
           />
         </Backlight>
         <div className="mt-6">
@@ -381,51 +536,80 @@ export function FullAudioPlayer({ className = "" }: { className?: string }) {
         ) : null}
       </div>
 
-      <div className="min-w-0 border-t border-[var(--line)] pt-5 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-[var(--accent)]">
-              Queue
-            </p>
-            <h3 className="mt-2 text-xl font-semibold">播放队列</h3>
-          </div>
-          <span className="text-xs text-[var(--muted)]">{queue.length} 首</span>
+      <div className="min-w-0 rounded-[calc(var(--radius-panel)-.35rem)] bg-[color-mix(in_srgb,var(--surface)_72%,var(--powder))] p-4 sm:p-5 lg:p-6">
+        <div
+          aria-label="音乐内容"
+          className="grid grid-cols-2 rounded-full bg-[var(--surface)] p-1"
+          role="tablist"
+        >
+          <button
+            aria-selected={panelMode === "lyrics"}
+            className={[
+              "min-h-11 rounded-full px-4 text-sm font-semibold transition-colors",
+              panelMode === "lyrics"
+                ? "bg-[var(--accent)] text-[var(--accent-ink)]"
+                : "text-[var(--muted)] hover:text-[var(--ink)]",
+            ].join(" ")}
+            onClick={() => setPanelMode("lyrics")}
+            role="tab"
+            type="button"
+          >
+            歌词
+          </button>
+          <button
+            aria-selected={panelMode === "queue"}
+            className={[
+              "min-h-11 rounded-full px-4 text-sm font-semibold transition-colors",
+              panelMode === "queue"
+                ? "bg-[var(--accent)] text-[var(--accent-ink)]"
+                : "text-[var(--muted)] hover:text-[var(--ink)]",
+            ].join(" ")}
+            onClick={() => setPanelMode("queue")}
+            role="tab"
+            type="button"
+          >
+            歌单 · {queue.length}
+          </button>
         </div>
-        <ol className="mt-4 max-h-[31rem] space-y-1 overflow-y-auto pr-1">
-          {queue.map((track, index) => {
-            const active = track.id === currentTrack.id;
-            return (
-              <li key={track.id}>
-                <button
-                  aria-current={active ? "true" : undefined}
-                  className={[
-                    "grid min-h-14 w-full grid-cols-[2rem_minmax(0,1fr)_auto] items-center gap-3 rounded-[var(--radius-control,0.625rem)] px-3 py-2 text-left transition-colors",
-                    active
-                      ? "bg-[var(--accent-soft)] text-[var(--ink)]"
-                      : "hover:bg-[var(--surface-strong)]",
-                  ].join(" ")}
-                  onClick={() => select(track.id)}
-                  type="button"
-                >
-                  <span className="font-mono text-[10px] text-[var(--muted)]">
-                    {String(index + 1).padStart(2, "0")}
-                  </span>
-                  <span className="min-w-0">
-                    <span className="block truncate text-sm font-medium">
-                      {track.title}
+        {panelMode === "lyrics" ? (
+          <LyricsPanel currentTime={currentTime} lyrics={currentTrack.lyrics} />
+        ) : (
+          <ol className="mt-4 max-h-[31rem] space-y-1 overflow-y-auto pr-1">
+            {queue.map((track, index) => {
+              const active = track.id === currentTrack.id;
+              return (
+                <li key={track.id}>
+                  <button
+                    aria-current={active ? "true" : undefined}
+                    className={[
+                      "grid min-h-14 w-full grid-cols-[2rem_minmax(0,1fr)_auto] items-center gap-3 rounded-[var(--radius-control,0.625rem)] px-3 py-2 text-left transition-colors",
+                      active
+                        ? "bg-[var(--accent-soft)] text-[var(--ink)]"
+                        : "hover:bg-[var(--surface-strong)]",
+                    ].join(" ")}
+                    onClick={() => select(track.id)}
+                    type="button"
+                  >
+                    <span className="font-mono text-[10px] text-[var(--muted)]">
+                      {String(index + 1).padStart(2, "0")}
                     </span>
-                    <span className="block truncate text-xs text-[var(--muted)]">
-                      {track.artist || "个人音乐记录"}
+                    <span className="min-w-0">
+                      <span className="block truncate text-sm font-medium">
+                        {track.title}
+                      </span>
+                      <span className="block truncate text-xs text-[var(--muted)]">
+                        {track.artist || "个人音乐记录"}
+                      </span>
                     </span>
-                  </span>
-                  <span className="font-mono text-[10px] text-[var(--muted)]">
-                    {formatTime(track.durationSeconds || 0)}
-                  </span>
-                </button>
-              </li>
-            );
-          })}
-        </ol>
+                    <span className="font-mono text-[10px] text-[var(--muted)]">
+                      {formatTime(track.durationSeconds || 0)}
+                    </span>
+                  </button>
+                </li>
+              );
+            })}
+          </ol>
+        )}
         {currentTrack.note ? (
           <div className="mt-6 border-l-2 border-[var(--accent)] pl-4">
             <p className="text-xs font-semibold text-[var(--accent)]">音乐随记</p>

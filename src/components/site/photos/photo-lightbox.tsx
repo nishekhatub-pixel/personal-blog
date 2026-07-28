@@ -25,6 +25,7 @@ export function PhotoLightbox({ photos }: { photos: LightboxPhoto[] }) {
   const dialogRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
   const isOpen = activeIndex !== null;
 
   useEffect(() => {
@@ -90,15 +91,23 @@ export function PhotoLightbox({ photos }: { photos: LightboxPhoto[] }) {
   };
 
   const activePhoto = activeIndex === null ? null : photos[activeIndex];
+  const showPrevious = () =>
+    setActiveIndex((current) =>
+      current === null ? 0 : (current - 1 + photos.length) % photos.length,
+    );
+  const showNext = () =>
+    setActiveIndex((current) =>
+      current === null ? 0 : (current + 1) % photos.length,
+    );
 
   return (
     <>
-      <ol className="columns-1 gap-5 sm:columns-2 lg:columns-3">
+      <ol className="columns-2 gap-3 sm:gap-5 lg:columns-3">
         {photos.map((photo, index) => (
           <li
             id={`photo-${photo.id}`}
             key={photo.id}
-            className="mb-5 break-inside-avoid overflow-hidden rounded-[var(--radius-media,.75rem)] border border-[var(--line)] bg-[var(--surface)] shadow-[var(--shadow)]"
+            className="garden-card mb-3 break-inside-avoid overflow-hidden sm:mb-5"
           >
             <button
               type="button"
@@ -110,17 +119,17 @@ export function PhotoLightbox({ photos }: { photos: LightboxPhoto[] }) {
                 src={photo.url}
                 width={photo.width}
                 height={photo.height}
-                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 34vw"
+                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 34vw"
                 alt={photo.alt}
                 priority={index < 2}
                 className="h-auto w-full transition-transform duration-500 group-hover:scale-[1.015]"
               />
             </button>
-            <div className="p-4">
+            <div className="p-3 sm:p-4">
               {photo.caption ? (
-                <p className="leading-7">{photo.caption}</p>
+                <p className="text-sm leading-6 sm:text-base sm:leading-7">{photo.caption}</p>
               ) : (
-                <p className="leading-7 text-[var(--muted)]">{photo.alt}</p>
+                <p className="text-sm leading-6 text-[var(--muted)] sm:text-base sm:leading-7">{photo.alt}</p>
               )}
               {photo.dateLabel || photo.location ? (
                 <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-sm text-[var(--muted)]">
@@ -145,7 +154,7 @@ export function PhotoLightbox({ photos }: { photos: LightboxPhoto[] }) {
 
       {activePhoto ? (
         <div
-          className="fixed inset-0 z-[80] grid overflow-y-auto bg-[rgba(24,18,13,.86)] p-3 backdrop-blur-sm md:p-6"
+          className="fixed inset-0 z-[80] grid overflow-y-auto bg-[rgba(24,18,13,.86)] p-0 backdrop-blur-sm sm:p-3 md:p-6"
           onMouseDown={(event) => {
             if (event.target === event.currentTarget) setActiveIndex(null);
           }}
@@ -155,7 +164,7 @@ export function PhotoLightbox({ photos }: { photos: LightboxPhoto[] }) {
             role="dialog"
             aria-modal="true"
             aria-labelledby="photo-dialog-title"
-            className="relative m-auto flex max-h-[calc(100dvh-1.5rem)] w-full max-w-6xl flex-col overflow-hidden rounded-[var(--radius-panel,1.125rem)] bg-[var(--surface)] text-[var(--ink)] shadow-2xl md:max-h-[calc(100dvh-3rem)]"
+            className="relative m-auto flex h-[100dvh] max-h-[100dvh] w-full max-w-6xl flex-col overflow-hidden rounded-none bg-[var(--surface)] text-[var(--ink)] shadow-2xl sm:h-auto sm:max-h-[calc(100dvh-1.5rem)] sm:rounded-[var(--radius-panel)] md:max-h-[calc(100dvh-3rem)]"
           >
             <div className="flex min-h-14 items-center justify-between gap-4 border-b border-[var(--line)] px-4">
               <p className="font-mono text-sm text-[var(--muted)]" aria-live="polite">
@@ -172,7 +181,28 @@ export function PhotoLightbox({ photos }: { photos: LightboxPhoto[] }) {
               </button>
             </div>
 
-            <div className="relative flex min-h-0 flex-1 items-center justify-center bg-[var(--surface-strong)] p-3 md:p-6">
+            <div
+              className="relative flex min-h-0 flex-1 touch-pan-y items-center justify-center bg-[var(--surface-strong)] p-3 md:p-6"
+              onTouchEnd={(event) => {
+                const start = touchStartRef.current;
+                const touch = event.changedTouches[0];
+                touchStartRef.current = null;
+                if (!start || !touch || photos.length < 2) return;
+                const deltaX = touch.clientX - start.x;
+                const deltaY = touch.clientY - start.y;
+                if (Math.abs(deltaX) < 48 || Math.abs(deltaX) <= Math.abs(deltaY)) {
+                  return;
+                }
+                if (deltaX > 0) showPrevious();
+                else showNext();
+              }}
+              onTouchStart={(event) => {
+                const touch = event.touches[0];
+                if (touch) {
+                  touchStartRef.current = { x: touch.clientX, y: touch.clientY };
+                }
+              }}
+            >
               <Image
                 key={activePhoto.id}
                 src={activePhoto.url}
@@ -187,11 +217,7 @@ export function PhotoLightbox({ photos }: { photos: LightboxPhoto[] }) {
                 <>
                   <button
                     type="button"
-                    onClick={() =>
-                      setActiveIndex(
-                        (activeIndex! - 1 + photos.length) % photos.length,
-                      )
-                    }
+                    onClick={showPrevious}
                     className="absolute left-2 inline-flex size-12 items-center justify-center rounded-full border border-[var(--line)] bg-[var(--surface)] shadow-[var(--shadow)] md:left-5"
                     aria-label="上一张照片"
                   >
@@ -199,9 +225,7 @@ export function PhotoLightbox({ photos }: { photos: LightboxPhoto[] }) {
                   </button>
                   <button
                     type="button"
-                    onClick={() =>
-                      setActiveIndex((activeIndex! + 1) % photos.length)
-                    }
+                    onClick={showNext}
                     className="absolute right-2 inline-flex size-12 items-center justify-center rounded-full border border-[var(--line)] bg-[var(--surface)] shadow-[var(--shadow)] md:right-5"
                     aria-label="下一张照片"
                   >

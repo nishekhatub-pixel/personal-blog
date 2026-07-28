@@ -13,7 +13,7 @@ export default async function NewAlbumPage() {
       <GardenEditorHeader
         backHref="/admin/albums"
         backLabel="返回相册列表"
-        description="先建立清楚的相册主题；没有真实照片时可以保持草稿和空相册。"
+        description="先创建相册；保存后会立即进入电脑批量上传区域，无需先去媒体库。"
         eyebrow="ALBUM / NEW"
         title="新建相册"
       />

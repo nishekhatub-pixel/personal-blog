@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PetalField } from "@/components/site/atmosphere/petal-field";
+import { PageIntro } from "@/components/site/page-intro";
 import {
   PhotoLightbox,
   type LightboxPhoto,
@@ -61,8 +62,12 @@ export default async function PhotoAlbumPage({
   return (
     <main id="main-content">
       <PetalField className="opacity-25" seed={`r7-album-${album.slug}`} />
-      <header className="px-[var(--page-gutter)] pb-12 pt-[clamp(3rem,7vw,6rem)]">
-        <div className="mx-auto max-w-[var(--content-max)]">
+      <PageIntro
+        eyebrow="相册记录"
+        title={album.title}
+        description={album.description}
+        actions={
+          <>
           <Link
             href="/photos"
             className="inline-flex min-h-11 items-center gap-2 font-semibold text-[var(--muted)] hover:text-[var(--accent)]"
@@ -70,15 +75,7 @@ export default async function PhotoAlbumPage({
             <ArrowLeft aria-hidden size={18} />
             返回照片墙
           </Link>
-          <h1 className="mt-6 max-w-5xl text-[clamp(2.8rem,6vw,5.6rem)] font-black leading-[.94] tracking-[-.065em]">
-            {album.title}
-          </h1>
-          {album.description ? (
-            <p className="mt-6 max-w-[66ch] text-lg leading-8 text-[var(--muted)]">
-              {album.description}
-            </p>
-          ) : null}
-          <dl className="mt-7 flex flex-wrap gap-x-6 gap-y-3 text-sm text-[var(--muted)]">
+          <dl className="flex min-h-11 flex-wrap items-center gap-x-6 gap-y-3 text-sm text-[var(--muted)]">
             <div className="flex items-center gap-2">
               <Images aria-hidden size={17} />
               <dt className="sr-only">照片数量</dt>
@@ -99,8 +96,9 @@ export default async function PhotoAlbumPage({
               </div>
             ) : null}
           </dl>
-        </div>
-      </header>
+          </>
+        }
+      />
 
       <section
         className="px-[var(--page-gutter)] pb-[clamp(5rem,10vw,9rem)]"
@@ -113,7 +111,7 @@ export default async function PhotoAlbumPage({
           {photos.length ? (
             <PhotoLightbox photos={photos} />
           ) : (
-            <div className="grid min-h-80 place-items-center rounded-[var(--radius-panel,1.125rem)] border border-[var(--line)] bg-[var(--surface)] px-6 text-center">
+            <div className="garden-panel grid min-h-80 place-items-center px-6 text-center">
               <div className="max-w-lg">
                 <Images
                   aria-hidden

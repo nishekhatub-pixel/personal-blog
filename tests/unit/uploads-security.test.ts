@@ -23,6 +23,7 @@ vi.mock("file-type", () => ({
 import {
   processMediaUpload,
 } from "@/lib/uploads";
+import { env } from "@/lib/env";
 import { deleteMediaAndFiles } from "@/lib/media-storage";
 
 describe("media upload validation", () => {
@@ -45,12 +46,12 @@ describe("media upload validation", () => {
     const oversized = {
       name: "large.png",
       type: "image/png",
-      size: 8 * 1024 * 1024 + 1,
+      size: env.UPLOAD_MAX_BYTES + 1,
       arrayBuffer: vi.fn(),
     } as unknown as File;
 
     await expect(processMediaUpload(oversized, "大尺寸图片")).rejects.toThrow(
-      "8 MB",
+      "100 MB",
     );
     expect(oversized.arrayBuffer).not.toHaveBeenCalled();
   });

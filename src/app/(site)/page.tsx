@@ -13,9 +13,7 @@ import Link from "next/link";
 import { PetalField } from "@/components/site/atmosphere/petal-field";
 import { AnimatedList } from "@/components/site/home/animated-list";
 import { ContentCalendar } from "@/components/site/home/content-calendar";
-import { Highlighter } from "@/components/site/home/highlighter";
-import { KineticText } from "@/components/site/home/kinetic-text";
-import { TactileButton } from "@/components/site/home/tactile-button";
+import { PhotoCarousel } from "@/components/site/home/photo-carousel";
 import { TimezoneClock } from "@/components/site/home/timezone-clock";
 import { CompactAudioPlayer } from "@/components/site/music/audio-player";
 import { WeatherCard } from "@/components/site/weather/weather-card";
@@ -280,7 +278,9 @@ export default async function HomePage() {
 
   return (
     <main className="home-page" id="main-content">
+      <h1 className="sr-only">R7 Digital Garden</h1>
       <PetalField seed="r7-home-garden" />
+      <PhotoCarousel />
       <div className="home-layout">
         <aside className="home-profile-column">
           <section className="home-panel home-profile" aria-labelledby="profile-name">
@@ -368,32 +368,6 @@ export default async function HomePage() {
         </aside>
 
         <div className="home-main-column">
-          <section className="home-welcome" aria-labelledby="home-title">
-            <p className="home-welcome__label">个人数字花园</p>
-            <h1 id="home-title">
-              把成长写进
-              <KineticText>生长回路</KineticText>
-            </h1>
-            <p className="home-welcome__copy">
-              我是 R7，一名<Highlighter>软件技术专业学生</Highlighter>。这里记录真实的学习、构建和生活，这是一座
-              <Highlighter>数字花园</Highlighter>。
-            </p>
-            <div className="home-welcome__actions">
-              <TactileButton href="/blog">
-                阅读文章
-                <ArrowRight aria-hidden="true" size={17} />
-              </TactileButton>
-              <TactileButton href="/projects" variant="secondary">
-                查看项目
-              </TactileButton>
-            </div>
-            <div className="home-welcome__status">
-              <span>此刻</span>
-              <p>{settings.nowText || "近况尚未填写。"}</p>
-              <Link href="/now">查看完整近况</Link>
-            </div>
-          </section>
-
           <section className="home-stream" aria-labelledby="home-stream-title">
             <div className="home-stream__heading">
               <div>

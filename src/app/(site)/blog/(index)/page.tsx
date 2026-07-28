@@ -7,6 +7,7 @@ import { formatDate, type PublicPost, type Taxonomy } from "@/components/content
 import { MediaFrame } from "@/components/content/media-frame";
 import { Pagination } from "@/components/content/pagination";
 import { PostCard } from "@/components/content/post-card";
+import { PageIntro } from "@/components/site/page-intro";
 
 export const metadata: Metadata = {
   title: "文章",
@@ -42,28 +43,25 @@ export default async function BlogPage({
 
   return (
     <main id="main-content">
-      <header className="px-[clamp(1rem,4vw,4rem)] pb-12 pt-[clamp(4rem,10vw,9rem)]">
-        <div className="mx-auto grid max-w-[1400px] gap-8 lg:grid-cols-12 lg:items-end">
-          <div className="lg:col-span-8">
-            <h1 className="text-[clamp(4rem,10vw,9rem)] font-black leading-[.85] tracking-[-.08em]">文章</h1>
-            <p className="mt-7 max-w-2xl text-lg leading-8 text-[var(--muted)]">
-              从一个问题开始，留下查找、试错、判断和复盘。这里共有 {result.total} 篇公开记录。
-            </p>
-          </div>
-          <Link href="/archive" className="inline-flex w-fit items-center gap-2 font-semibold lg:col-span-3 lg:col-start-10">
+      <PageIntro
+        eyebrow="阅读花园"
+        title="文章"
+        description={`从一个问题开始，留下查找、试错、判断和复盘。这里共有 ${result.total} 篇公开记录。`}
+        actions={
+          <Link href="/archive" className="inline-flex min-h-11 w-fit items-center gap-2 font-semibold">
             <Archive aria-hidden size={18} strokeWidth={1.7} /> 按时间查看归档
           </Link>
-        </div>
-      </header>
+        }
+      />
 
-      <section className="border-y border-[var(--line)] px-[clamp(1rem,4vw,4rem)] py-7" aria-label="文章筛选">
-        <div className="mx-auto flex max-w-[1400px] flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+      <section className="px-[var(--page-gutter)] pb-6" aria-label="文章筛选">
+        <div className="garden-panel mx-auto flex max-w-[var(--content-max)] flex-col gap-5 p-4 lg:flex-row lg:items-center lg:justify-between lg:p-5">
           <nav className="flex max-w-full gap-2 overflow-x-auto pb-1" aria-label="按分类筛选">
             <Link
               href={query ? `/blog?q=${encodeURIComponent(query)}` : "/blog"}
               aria-current={!category && !tag ? "page" : undefined}
               className={`shrink-0 rounded-full border px-4 py-2 text-sm font-semibold ${
-                !category && !tag ? "border-[var(--accent)] bg-[var(--accent-soft)] text-[var(--success)]" : "border-[var(--line)]"
+                !category && !tag ? "border-[var(--accent)] bg-[var(--accent-soft)] text-[var(--accent)]" : "border-[var(--line)]"
               }`}
             >
               全部
@@ -74,7 +72,7 @@ export default async function BlogPage({
                 href={`/blog?category=${encodeURIComponent(item.slug)}${query ? `&q=${encodeURIComponent(query)}` : ""}`}
                 aria-current={category === item.slug ? "page" : undefined}
                 className={`shrink-0 rounded-full border px-4 py-2 text-sm font-semibold ${
-                  category === item.slug ? "border-[var(--accent)] bg-[var(--accent-soft)] text-[var(--success)]" : "border-[var(--line)]"
+                  category === item.slug ? "border-[var(--accent)] bg-[var(--accent-soft)] text-[var(--accent)]" : "border-[var(--line)]"
                 }`}
               >
                 {item.name}
@@ -98,8 +96,8 @@ export default async function BlogPage({
         </div>
       </section>
 
-      <section className="px-[clamp(1rem,4vw,4rem)] py-[clamp(4rem,10vw,9rem)]">
-        <div className="mx-auto max-w-[1400px]">
+      <section className="px-[var(--page-gutter)] py-[clamp(3rem,8vw,7rem)]">
+        <div className="mx-auto max-w-[var(--content-max)]">
           {lead ? (
             <>
               <PostCard post={lead} featured priority />
@@ -115,8 +113,8 @@ export default async function BlogPage({
                           </time>
                         </div>
                         <Link href={`/blog/${post.slug}`} className="md:col-span-7">
-                          <p className="text-xs font-semibold text-[var(--success)]">{post.category.name} · {post.readingMinutes} 分钟</p>
-                          <h3 className="mt-2 text-[clamp(1.5rem,2.4vw,2.25rem)] font-semibold leading-[1.1] tracking-[-.045em] group-hover:text-[var(--success)]">
+                <p className="text-xs font-semibold text-[var(--accent)]">{post.category.name} · {post.readingMinutes} 分钟</p>
+                <h3 className="mt-2 text-[clamp(1.5rem,2.4vw,2.25rem)] font-semibold leading-[1.1] tracking-[-.045em] group-hover:text-[var(--accent)]">
                             {post.title}
                             <ArrowUpRight className="ml-2 inline-block opacity-0 transition-opacity group-hover:opacity-100" aria-hidden size={19} />
                           </h3>

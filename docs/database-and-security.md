@@ -60,13 +60,13 @@ SQLite 初始化迁移位于 `prisma/migrations/202607270001_init/migration.sql`
 
 ## 媒体安全
 
-上传接口只接受 JPEG、PNG、WebP 和 AVIF，最大 8 MB，并按以下顺序验证：
+上传接口接受 JPEG、PNG、WebP、AVIF、GIF、TIFF、HEIC 和 HEIF，最大 100 MB，并按以下顺序验证：
 
 1. 检查浏览器声明的 MIME；
 2. 检查文件扩展名；
 3. 读取文件魔数，确认真实 MIME；
 4. 要求声明 MIME、扩展名和魔数三者一致；
-5. 使用 Sharp 解码，并限制到 4000 万输入像素；
+5. 使用 Sharp 解码，并限制到 1 亿输入像素；
 6. 丢弃原始二进制，重新编码为 WebP；
 7. 生成不放大的 320、640、1200、2000 像素多尺寸版本。
 
@@ -99,6 +99,7 @@ SQLite 初始化迁移位于 `prisma/migrations/202607270001_init/migration.sql`
 | `IP_HASH_SECRET` | 与会话秘密不同的随机秘密 |
 | `ADMIN_EMAIL` | 初始管理员邮箱 |
 | `ADMIN_PASSWORD` | 高强度一次性初始密码 |
-| `UPLOAD_MAX_BYTES` | 默认 `8388608`，最大允许 16 MB |
+| `UPLOAD_MAX_BYTES` | 默认 `104857600`，最大允许 100 MB |
+| `AUDIO_UPLOAD_MAX_BYTES` | 默认 `104857600`，最大允许 200 MB |
 
 生产响应建议同时配置 Content-Security-Policy、Strict-Transport-Security、Referrer-Policy、Permissions-Policy 和 `X-Content-Type-Options: nosniff`。数据库账户按运行与迁移分离，备份需在隔离环境定期验证恢复。

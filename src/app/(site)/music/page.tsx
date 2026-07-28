@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import type { Metadata } from "next";
 import Image from "next/image";
+import { PageIntro } from "@/components/site/page-intro";
 import { FullAudioPlayer } from "@/components/site/music/audio-player";
 import { PlaylistQueueButton } from "@/components/site/music/playlist-queue-button";
 import { getSiteSettings } from "@/lib/data";
@@ -48,29 +49,21 @@ export default async function MusicPage() {
 
   return (
     <main id="main-content">
-      <header className="px-[var(--page-gutter)] pb-12 pt-[clamp(3.5rem,8vw,7rem)]">
-        <div className="mx-auto max-w-[var(--content-max)]">
-          <p className="mb-4 text-sm font-semibold text-[var(--accent)]">
-            Music diary
+      <PageIntro
+        actions={
+          <p className="font-mono text-sm text-[var(--muted)]">
+            {tracks.total} 首公开曲目
           </p>
-          <h1 className="max-w-4xl text-[clamp(3rem,7vw,6rem)] font-black leading-[.92] tracking-[-.07em]">
-            音乐
-          </h1>
-          <div className="mt-6 flex flex-wrap items-end justify-between gap-5">
-            <p className="max-w-[58ch] text-lg leading-8 text-[var(--muted)]">
-              这里保存真实曲目、播放清单与听歌时写下的只言片语。播放只会在你主动操作后开始。
-            </p>
-            <p className="font-mono text-sm text-[var(--muted)]">
-              {tracks.total} 首公开曲目
-            </p>
-          </div>
-        </div>
-      </header>
+        }
+        description="音乐纯粹，爱无绝对。这里保存真实曲目、播放清单与听歌时写下的只言片语；播放只会在你主动操作后开始。"
+        eyebrow="Music diary"
+        title="云端乐律"
+      />
 
       <div className="px-[var(--page-gutter)] pb-[clamp(5rem,10vw,9rem)]">
         <div className="mx-auto max-w-[var(--content-max)]">
           {!musicEnabled ? (
-            <section className="grid min-h-[28rem] place-items-center rounded-[var(--radius-panel,1.125rem)] border border-[var(--line)] bg-[var(--surface)] px-6 text-center shadow-[var(--shadow)]">
+            <section className="garden-panel soft-section grid min-h-[28rem] place-items-center px-6 text-center">
               <div className="max-w-lg">
                 <LockKeyhole
                   aria-hidden
@@ -96,7 +89,7 @@ export default async function MusicPage() {
                   <FullAudioPlayer />
                 </section>
               ) : (
-                <section className="rounded-[var(--radius-panel,1.125rem)] border border-dashed border-[var(--line)] bg-[var(--surface)] p-7">
+                <section className="garden-panel border-dashed p-7">
                   <Music2
                     aria-hidden
                     className="text-[var(--accent)]"
@@ -136,7 +129,7 @@ export default async function MusicPage() {
                     {playlists.items.map((playlist) => (
                       <article
                         key={playlist.id}
-                        className="grid min-w-0 gap-5 rounded-[var(--radius-panel,1.125rem)] border border-[var(--line)] bg-[var(--surface)] p-5 shadow-[var(--shadow)] sm:grid-cols-[9rem_minmax(0,1fr)]"
+                        className="garden-card grid min-w-0 gap-5 p-5 sm:grid-cols-[9rem_minmax(0,1fr)]"
                       >
                         <div className="relative aspect-square overflow-hidden rounded-[var(--radius-media,.75rem)] bg-[var(--surface-strong)]">
                           {playlist.coverMedia ? (
@@ -214,7 +207,7 @@ export default async function MusicPage() {
                     ))}
                   </div>
                 ) : (
-                  <div className="mt-7 rounded-[var(--radius-panel,1.125rem)] border border-dashed border-[var(--line)] p-7 text-[var(--muted)]">
+                  <div className="garden-panel mt-7 border-dashed p-7 text-[var(--muted)]">
                     <ListMusic aria-hidden size={27} strokeWidth={1.5} />
                     <h3 className="mt-4 text-xl font-semibold text-[var(--ink)]">
                       还没有公开歌单
@@ -243,11 +236,11 @@ export default async function MusicPage() {
                     </h2>
                   </div>
 
-                  <div className="mt-7 divide-y divide-[var(--line)] border-y border-[var(--line)]">
+                  <div className="garden-panel mt-7 divide-y divide-[var(--line)] overflow-hidden">
                     {diaryTracks.map((track) => (
                       <article
                         key={track.id}
-                        className="grid gap-5 py-7 md:grid-cols-[minmax(12rem,.55fr)_minmax(0,1.45fr)]"
+                        className="grid gap-5 px-5 py-7 md:grid-cols-[minmax(12rem,.55fr)_minmax(0,1.45fr)] md:px-7"
                       >
                         <header>
                           <div className="flex flex-wrap gap-2">
@@ -305,7 +298,7 @@ export default async function MusicPage() {
               ) : null}
             </>
           ) : (
-            <section className="grid min-h-[30rem] place-items-center rounded-[var(--radius-panel,1.125rem)] border border-[var(--line)] bg-[var(--surface)] px-6 text-center shadow-[var(--shadow)]">
+            <section className="garden-panel soft-section grid min-h-[30rem] place-items-center px-6 text-center">
               <div className="max-w-lg">
                 <Music2
                   aria-hidden

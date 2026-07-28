@@ -2,6 +2,12 @@ import { randomUUID } from "node:crypto";
 import { mkdir, readdir, stat, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileTypeFromBuffer, fileTypeFromFile } from "file-type";
+import {
+  parseBuffer,
+  selectCover,
+  TimestampFormat,
+  type IAudioMetadata,
+} from "music-metadata";
 import { env } from "@/lib/env";
 import { httpsUrlSchema } from "@/lib/garden-validation";
 
@@ -72,12 +78,69 @@ function safeAudioPath(url: string) {
 
 export type StoredAudio = {
   sourceType: "UPLOAD";
+  album: string | null;
+  artist: string | null;
   audioUrl: string;
+  coverMediaId: string | null;
+  coverOriginalName: string | null;
+  durationSeconds: number | null;
+  lyrics: string | null;
   originalName: string;
   storedName: string;
   mimeType: SupportedAudioMime;
   size: number;
+  title: string | null;
 };
+
+function lrcTimestamp(milliseconds: number) {
+  const safe = Math.max(0, Math.round(milliseconds));
+  const minutes = Math.floor(safe / 60_000);
+  const seconds = Math.floor((safe % 60_000) / 1000);
+  const centiseconds = Math.floor((safe % 1000) / 10);
+  return `[${String(minutes).padStart(2, "0")}:${String(seconds).padStart(
+    2,
+    "0",
+  )}.${String(centiseconds).padStart(2, "0")}]`;
+}
+
+function lyricsFromMetadata(metadata: IAudioMetadata) {
+  const tags = metadata.common.lyrics ?? [];
+  const synchronized = tags.find(
+    (tag) =>
+      tag.timeStampFormat === TimestampFormat.milliseconds &&
+      tag.syncText.some(
+        (line) =>
+          Number.isFinite(line.timestamp) && Boolean(line.text.trim()),
+      ),
+  );
+  if (synchronized) {
+    const lines = synchronized.syncText
+      .filter(
+        (line) =>
+          Number.isFinite(line.timestamp) && Boolean(line.text.trim()),
+      )
+      .sort((left, right) => (left.timestamp ?? 0) - (right.timestamp ?? 0))
+      .map(
+        (line) =>
+          `${lrcTimestamp(line.timestamp ?? 0)}${line.text.trim()}`,
+      );
+    if (lines.length) return lines.join("\n").slice(0, 200_000);
+  }
+  const plain = tags.find((tag) => tag.text?.trim())?.text?.trim();
+  return plain ? plain.slice(0, 200_000) : null;
+}
+
+function pictureExtension(mimeType: string) {
+  const extensions: Record<string, string> = {
+    "image/avif": "avif",
+    "image/gif": "gif",
+    "image/jpeg": "jpg",
+    "image/png": "png",
+    "image/tiff": "tiff",
+    "image/webp": "webp",
+  };
+  return extensions[mimeType.toLocaleLowerCase("en-US")] ?? null;
+}
 
 export async function storeAudioUpload(file: File): Promise<StoredAudio> {
   if (!(file instanceof File) || file.size <= 0) throw new Error("请选择音频文件。");
@@ -111,17 +174,82 @@ export async function storeAudioUpload(file: File): Promise<StoredAudio> {
   const outputDirectory = path.join(AUDIO_UPLOAD_ROOT, directorySegment);
   await mkdir(outputDirectory, { recursive: true });
 
+  let metadata: IAudioMetadata | null = null;
+  try {
+    metadata = await parseBuffer(
+      input,
+      {
+        mimeType: detectedMime,
+        path: originalName,
+        size: input.byteLength,
+      },
+      { duration: true },
+    );
+  } catch (error) {
+    console.warn("audio_metadata_parse_failed", {
+      error: error instanceof Error ? error.message : "unknown",
+      originalName,
+    });
+  }
+
   const storedName = `${randomUUID()}.${format.storedExtension}`;
   const audioUrl = `/uploads/audio/${directorySegment}/${storedName}`;
   await writeFile(safeAudioPath(audioUrl), input, { flag: "wx" });
 
+  const metadataTitle = metadata?.common.title?.trim() || null;
+  let coverMediaId: string | null = null;
+  let coverOriginalName: string | null = null;
+  const embeddedCover = selectCover(metadata?.common.picture);
+  const coverExtension = embeddedCover
+    ? pictureExtension(embeddedCover.format)
+    : null;
+  if (embeddedCover && coverExtension) {
+    coverOriginalName = `${path
+      .basename(originalName, path.extname(originalName))
+      .slice(0, 180)}-cover.${coverExtension}`;
+    try {
+      const { processMediaUpload } = await import("@/lib/uploads");
+      const coverFile = new File(
+        [Buffer.from(embeddedCover.data)],
+        coverOriginalName,
+        { type: embeddedCover.format },
+      );
+      const cover = await processMediaUpload(
+        coverFile,
+        `${metadataTitle || path.basename(originalName, path.extname(originalName)) || "音乐"} 封面`,
+      );
+      coverMediaId = cover.id;
+    } catch (error) {
+      console.warn("audio_cover_extract_failed", {
+        error: error instanceof Error ? error.message : "unknown",
+        originalName,
+      });
+      coverOriginalName = null;
+    }
+  }
+
   return {
     sourceType: "UPLOAD",
+    album: metadata?.common.album?.trim() || null,
+    artist:
+      metadata?.common.artist?.trim() ||
+      metadata?.common.albumartist?.trim() ||
+      null,
     audioUrl,
+    coverMediaId,
+    coverOriginalName,
+    durationSeconds:
+      metadata?.format.duration &&
+      Number.isFinite(metadata.format.duration) &&
+      metadata.format.duration > 0
+        ? Math.round(metadata.format.duration)
+        : null,
+    lyrics: metadata ? lyricsFromMetadata(metadata) : null,
     originalName,
     storedName,
     mimeType: detectedMime,
     size: input.byteLength,
+    title: metadataTitle,
   };
 }
 

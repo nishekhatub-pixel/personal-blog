@@ -157,7 +157,7 @@ test.describe.serial("R7 V2 persisted public workflows", () => {
       const form = page.getByRole("form", { name: "提交留言" });
       await form.getByLabel("昵称").fill(nickname);
       await form.getByLabel("留言内容").fill(content);
-      await form.getByRole("button", { name: "提交留言" }).click();
+      await form.getByRole("button", { name: "把便签留在这里" }).click();
       await expect(form.getByText(/留言已提交/)).toBeVisible();
 
       await page.reload();

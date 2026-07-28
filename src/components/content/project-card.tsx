@@ -14,7 +14,7 @@ export function ProjectCard({
 }) {
   const technologies = parseStringArray(project.technologyJson).slice(0, 4);
   return (
-    <article className="group">
+    <article className="group garden-card overflow-hidden p-3 md:p-4">
       <Link href={`/projects/${project.slug}`} className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-4">
         <MediaFrame
           src={project.coverImage}
@@ -25,7 +25,7 @@ export function ProjectCard({
         />
         <div className="mt-5 flex items-start justify-between gap-5">
           <div>
-            <h2 className="text-2xl font-semibold tracking-[-.045em] group-hover:text-[var(--success)]">{project.title}</h2>
+            <h2 className="text-2xl font-semibold tracking-[-.035em] transition-colors group-hover:text-[var(--accent)]">{project.title}</h2>
             <p className="mt-2 max-w-[60ch] text-sm leading-7 text-[var(--muted)]">{project.summary}</p>
             {technologies.length ? (
               <p className="mt-3 font-mono text-xs text-[var(--muted)]">{technologies.join(" / ")}</p>
@@ -37,4 +37,3 @@ export function ProjectCard({
     </article>
   );
 }
-

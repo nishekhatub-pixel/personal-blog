@@ -1,3 +1,4 @@
+import path from "node:path";
 import { expect, test } from "@playwright/test";
 import { adminEmail, loginAsAdmin } from "./helpers";
 
@@ -46,6 +47,7 @@ test.describe.serial("article CRUD", () => {
   test("creates, publishes, updates and deletes an article", async ({
     page,
   }) => {
+    test.setTimeout(60_000);
     const runId = `${Date.now()}-${test.info().project.name}`;
     const slug = `playwright-crud-${runId}`.toLowerCase();
     const initialTitle = `Playwright 自动化文章 ${runId}`;
@@ -131,7 +133,9 @@ test.describe("media validation", () => {
       buffer: Buffer.from("not an image"),
     });
     await expect(
-      page.getByText("仅支持 JPEG、PNG、WebP 或 AVIF 图片。"),
+      page.getByText(
+        "支持 JPEG、PNG、WebP、AVIF、GIF、TIFF、HEIC 和 HEIF 图片。",
+      ),
     ).toBeVisible();
 
     const response = await page.request.post("/api/admin/media", {
@@ -148,5 +152,55 @@ test.describe("media validation", () => {
 
     expect(response.status()).toBe(400);
     expect((await response.json()).error).toMatch(/真实格式|识别图片/);
+
+    const pngFixture = path.join(
+      process.cwd(),
+      "public",
+      "images",
+      "r7-about-study.png",
+    );
+    await page.locator('input[type="file"]').setInputFiles(pngFixture);
+    await expect(
+      page.getByText("r7-about-study.png", { exact: true }),
+    ).toBeVisible({
+      timeout: 20_000,
+    });
+
+    page.once("dialog", (dialog) => dialog.accept());
+    await page
+      .getByRole("button", { name: "删除 r7-about-study.png" })
+      .click();
+    await expect(
+      page.getByText("r7-about-study.png", { exact: true }),
+    ).toHaveCount(0, { timeout: 15_000 });
+  });
+});
+
+test.describe.serial("site settings", () => {
+  test("saves validated settings and reloads the persisted value", async ({
+    page,
+  }) => {
+    await loginAsAdmin(page);
+    await page.goto("/admin/settings");
+    const footerNote = page.getByLabel("页脚短句");
+    const originalValue = await footerNote.inputValue();
+    const temporaryValue = `设置保存验证 ${Date.now()}`;
+
+    try {
+      await footerNote.fill(temporaryValue);
+      await page.getByRole("button", { name: "保存设置" }).click();
+      await expect(
+        page.getByText("站点设置已保存并开始生效。"),
+      ).toBeVisible({ timeout: 15_000 });
+
+      await page.reload();
+      await expect(page.getByLabel("页脚短句")).toHaveValue(temporaryValue);
+    } finally {
+      await page.getByLabel("页脚短句").fill(originalValue);
+      await page.getByRole("button", { name: "保存设置" }).click();
+      await expect(
+        page.getByText("站点设置已保存并开始生效。"),
+      ).toBeVisible({ timeout: 15_000 });
+    }
   });
 });

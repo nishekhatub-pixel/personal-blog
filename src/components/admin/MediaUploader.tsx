@@ -10,7 +10,71 @@ type UploadState =
   | { kind: "error"; message: string }
   | { kind: "success"; message: string };
 
-export function MediaUploader() {
+export type UploadedMedia = {
+  alt: string;
+  id: string;
+  originalName: string;
+  url: string;
+};
+
+const MAX_IMAGE_BYTES = 100 * 1024 * 1024;
+const allowedMimeTypes = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/avif",
+  "image/gif",
+  "image/tiff",
+  "image/heic",
+  "image/heif",
+]);
+const allowedExtensions = new Set([
+  "jpg",
+  "jpeg",
+  "png",
+  "webp",
+  "avif",
+  "gif",
+  "tif",
+  "tiff",
+  "heic",
+  "heif",
+]);
+
+function extensionOf(filename: string) {
+  return filename.split(".").pop()?.toLocaleLowerCase("en-US") ?? "";
+}
+
+function readUploadedMedia(payload: unknown): UploadedMedia {
+  if (!payload || typeof payload !== "object") {
+    throw new Error("图片上传成功，但接口返回的数据无效。");
+  }
+  const media = (payload as { media?: unknown }).media;
+  if (!media || typeof media !== "object") {
+    throw new Error("图片上传成功，但媒体记录不完整。");
+  }
+  const value = media as Record<string, unknown>;
+  if (
+    typeof value.id !== "string" ||
+    typeof value.alt !== "string" ||
+    typeof value.originalName !== "string" ||
+    typeof value.url !== "string"
+  ) {
+    throw new Error("图片上传成功，但媒体字段不完整。");
+  }
+  return {
+    alt: value.alt,
+    id: value.id,
+    originalName: value.originalName,
+    url: value.url,
+  };
+}
+
+export function MediaUploader({
+  onUploaded,
+}: {
+  onUploaded?: (media: UploadedMedia) => void;
+} = {}) {
   const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
   const [dragging, setDragging] = useState(false);
@@ -18,13 +82,21 @@ export function MediaUploader() {
 
   const upload = (file?: File) => {
     if (!file) return;
-    const allowed = ["image/jpeg", "image/png", "image/webp", "image/avif"];
-    if (!allowed.includes(file.type)) {
-      setState({ kind: "error", message: "仅支持 JPEG、PNG、WebP 或 AVIF 图片。" });
+    const extension = extensionOf(file.name);
+    const hasSupportedMime =
+      file.type === "" ||
+      file.type === "application/octet-stream" ||
+      allowedMimeTypes.has(file.type.toLocaleLowerCase("en-US"));
+    if (!hasSupportedMime || !allowedExtensions.has(extension)) {
+      setState({
+        kind: "error",
+        message:
+          "支持 JPEG、PNG、WebP、AVIF、GIF、TIFF、HEIC 和 HEIF 图片。",
+      });
       return;
     }
-    if (file.size > 8 * 1024 * 1024) {
-      setState({ kind: "error", message: "图片不能超过 8 MB。" });
+    if (file.size > MAX_IMAGE_BYTES) {
+      setState({ kind: "error", message: "图片不能超过 100 MB。" });
       return;
     }
 
@@ -42,9 +114,26 @@ export function MediaUploader() {
     });
     request.addEventListener("load", () => {
       if (request.status >= 200 && request.status < 300) {
-        setState({ kind: "success", message: "上传完成，响应式版本已经生成。" });
-        if (inputRef.current) inputRef.current.value = "";
-        router.refresh();
+        try {
+          const media = readUploadedMedia(
+            JSON.parse(request.responseText) as unknown,
+          );
+          onUploaded?.(media);
+          setState({
+            kind: "success",
+            message: "上传完成，响应式版本已经生成。",
+          });
+          if (inputRef.current) inputRef.current.value = "";
+          router.refresh();
+        } catch (error) {
+          setState({
+            kind: "error",
+            message:
+              error instanceof Error
+                ? error.message
+                : "无法读取上传后的媒体记录。",
+          });
+        }
       } else {
         let message = "上传失败，请检查图片后重试。";
         try {
@@ -82,7 +171,7 @@ export function MediaUploader() {
         }}
       >
         <input
-          accept="image/jpeg,image/png,image/webp,image/avif"
+          accept=".jpg,.jpeg,.png,.webp,.avif,.gif,.tif,.tiff,.heic,.heif,image/jpeg,image/png,image/webp,image/avif,image/gif,image/tiff,image/heic,image/heif"
           className="sr-only"
           disabled={state.kind === "uploading"}
           onChange={(event) => upload(event.target.files?.[0])}
@@ -110,7 +199,7 @@ export function MediaUploader() {
               : "拖入图片，或点击选择文件"}
           </span>
           <span className="mt-2 text-xs leading-5 text-[var(--muted)]">
-            JPEG、PNG、WebP、AVIF · 最大 8 MB
+            JPEG、PNG、WebP、AVIF、GIF、TIFF、HEIC/HEIF · 最大 100 MB
           </span>
         </span>
       </label>

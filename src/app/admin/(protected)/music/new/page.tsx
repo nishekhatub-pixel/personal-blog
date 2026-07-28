@@ -13,7 +13,7 @@ export default async function NewMusicTrackPage() {
       <GardenEditorHeader
         backHref="/admin/music"
         backLabel="返回音乐列表"
-        description="上传音频或登记公开 HTTPS 地址；封面从媒体库中选择。"
+        description="默认从本地电脑上传；可自动读取歌曲信息、时长、内嵌封面与歌词，也可另行上传封面。"
         eyebrow="MUSIC / NEW"
         title="添加曲目"
       />

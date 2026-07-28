@@ -1,8 +1,7 @@
 import { Save, ShieldCheck } from "lucide-react";
-import { updateSettings } from "@/actions/admin";
 import { SubmitButton } from "@/components/admin/AdminControls";
 import { AdminHeader } from "@/components/admin/AdminHeader";
-import { GardenActionForm } from "@/components/admin/GardenActionForm";
+import { SettingsActionForm } from "@/components/admin/SettingsActionForm";
 import { db } from "@/lib/db";
 
 const inputClass =
@@ -62,7 +61,12 @@ function Toggle({
   );
 }
 
-export default async function AdminSettingsPage() {
+export default async function AdminSettingsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ saved?: string }>;
+}) {
+  const { saved } = await searchParams;
   const records = await db.siteSetting.findMany({
     orderBy: [{ group: "asc" }, { key: "asc" }],
   });
@@ -79,11 +83,16 @@ export default async function AdminSettingsPage() {
         title="站点设置"
       />
 
-      <GardenActionForm
-        action={updateSettings}
-        className="grid gap-12"
-        successMessage="站点设置已保存。"
-      >
+      {saved === "1" ? (
+        <p
+          className="mb-8 border border-[color-mix(in_srgb,var(--success)_42%,var(--line))] bg-[color-mix(in_srgb,var(--success)_7%,var(--canvas))] px-4 py-3 text-sm leading-6 text-[var(--success)]"
+          role="status"
+        >
+          站点设置已保存并开始生效。
+        </p>
+      ) : null}
+
+      <SettingsActionForm className="grid gap-12">
         <section aria-labelledby="basic-heading">
           <div className="grid gap-6 lg:grid-cols-[13rem_minmax(0,1fr)]">
             <SectionIntro
@@ -453,7 +462,7 @@ export default async function AdminSettingsPage() {
             </span>
           </SubmitButton>
         </div>
-      </GardenActionForm>
+      </SettingsActionForm>
     </>
   );
 }

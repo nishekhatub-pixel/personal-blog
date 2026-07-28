@@ -18,7 +18,7 @@ const ratios = {
 
 export function MediaFrame({ src, alt, title, priority, ratio = "wide", className = "" }: MediaFrameProps) {
   return (
-    <div className={`relative isolate overflow-hidden rounded-xl bg-[var(--surface-strong)] ${ratios[ratio]} ${className}`}>
+    <div className={`relative isolate overflow-hidden rounded-[var(--radius-media)] bg-[var(--surface-strong)] ${ratios[ratio]} ${className}`}>
       {src ? (
         <Image
           src={src}
@@ -37,4 +37,3 @@ export function MediaFrame({ src, alt, title, priority, ratio = "wide", classNam
     </div>
   );
 }
-

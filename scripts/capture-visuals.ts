@@ -39,7 +39,9 @@ async function capture(
     throw new Error(`${route} 返回了 ${response?.status() ?? "空"} 响应。`);
   }
 
-  await page.locator("main#main-content").waitFor({ state: "visible" });
+  await page
+    .locator("main#main-content:visible")
+    .waitFor({ state: "visible" });
   await page.evaluate(() => document.fonts.ready);
 
   const overlay = await page.locator(
@@ -55,6 +57,36 @@ async function capture(
   if (!bodyHasContent) {
     throw new Error(`${route} 渲染为空白页面。`);
   }
+
+  await page.evaluate(() => {
+    const activeElement = document.activeElement;
+    if (activeElement instanceof HTMLElement) activeElement.blur();
+
+    let captureStyles = document.querySelector<HTMLStyleElement>(
+      "#visual-capture-overrides",
+    );
+    if (!captureStyles) {
+      captureStyles = document.createElement("style");
+      captureStyles.id = "visual-capture-overrides";
+      captureStyles.textContent = `
+        .site-header {
+          position: relative !important;
+          inset-block-start: auto !important;
+        }
+
+        .mobile-dock {
+          position: absolute !important;
+          inset-block-start: calc(100svh - 5.5rem) !important;
+          inset-block-end: auto !important;
+        }
+
+        .skip-link {
+          display: none !important;
+        }
+      `;
+      document.head.append(captureStyles);
+    }
+  });
 
   await revealWholePage(page);
   await page.screenshot({
@@ -167,6 +199,30 @@ async function main() {
       "06-about-desktop-light.png",
       desktopSession.consoleErrors,
     );
+    await capture(
+      desktopSession.page,
+      "/blog",
+      "07-blog-desktop-light.png",
+      desktopSession.consoleErrors,
+    );
+    await capture(
+      desktopSession.page,
+      "/projects",
+      "08-projects-desktop-light.png",
+      desktopSession.consoleErrors,
+    );
+    await capture(
+      desktopSession.page,
+      "/archive",
+      "09-archive-desktop-light.png",
+      desktopSession.consoleErrors,
+    );
+    await capture(
+      desktopSession.page,
+      "/friends",
+      "10-friends-desktop-light.png",
+      desktopSession.consoleErrors,
+    );
 
     await desktopSession.page.goto(`${baseUrl}/admin/login`);
     await desktopSession.page.getByLabel("邮箱").fill(
@@ -182,7 +238,25 @@ async function main() {
     await capture(
       desktopSession.page,
       "/admin/moments",
-      "07-admin-moments-desktop-light.png",
+      "11-admin-moments-desktop-light.png",
+      desktopSession.consoleErrors,
+    );
+    await capture(
+      desktopSession.page,
+      "/admin/settings",
+      "11b-admin-settings-desktop-light.png",
+      desktopSession.consoleErrors,
+    );
+    await capture(
+      desktopSession.page,
+      "/admin/music/new",
+      "11c-admin-music-upload-desktop-light.png",
+      desktopSession.consoleErrors,
+    );
+    await capture(
+      desktopSession.page,
+      "/admin/albums",
+      "11d-admin-albums-desktop-light.png",
       desktopSession.consoleErrors,
     );
     await desktop.close();
@@ -198,7 +272,7 @@ async function main() {
     await capture(
       darkSession.page,
       "/",
-      "08-home-desktop-dark.png",
+      "12-home-desktop-dark.png",
       darkSession.consoleErrors,
     );
     await dark.close();
@@ -213,7 +287,43 @@ async function main() {
     await capture(
       mobileSession.page,
       "/",
-      "09-home-mobile-390-light.png",
+      "13-home-mobile-390-light.png",
+      mobileSession.consoleErrors,
+    );
+    await capture(
+      mobileSession.page,
+      "/music",
+      "14-music-mobile-390-light.png",
+      mobileSession.consoleErrors,
+    );
+    await capture(
+      mobileSession.page,
+      "/guestbook",
+      "15-guestbook-mobile-390-light.png",
+      mobileSession.consoleErrors,
+    );
+    await capture(
+      mobileSession.page,
+      "/photos",
+      "16-photos-mobile-390-light.png",
+      mobileSession.consoleErrors,
+    );
+    await capture(
+      mobileSession.page,
+      "/moments",
+      "17-moments-mobile-390-light.png",
+      mobileSession.consoleErrors,
+    );
+    await capture(
+      mobileSession.page,
+      "/blog",
+      "18-blog-mobile-390-light.png",
+      mobileSession.consoleErrors,
+    );
+    await capture(
+      mobileSession.page,
+      "/about",
+      "19-about-mobile-390-light.png",
       mobileSession.consoleErrors,
     );
     await mobile.close();

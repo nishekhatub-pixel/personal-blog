@@ -180,8 +180,8 @@ pnpm dev
 | `IP_HASH_SECRET` | 访客/IP HMAC Secret；必须与会话 Secret 不同 |
 | `ADMIN_EMAIL` | Seed 创建或更新管理员时使用 |
 | `ADMIN_PASSWORD` | Seed 计算管理员密码哈希时使用；应为唯一长密码 |
-| `UPLOAD_MAX_BYTES` | 图片上传上限；默认 8 MiB，代码允许配置到 16 MiB |
-| `AUDIO_UPLOAD_MAX_BYTES` | 音频上传上限；默认 25 MiB，代码允许 1 至 200 MiB |
+| `UPLOAD_MAX_BYTES` | 图片上传上限；默认与当前后台界面均为 100 MiB |
+| `AUDIO_UPLOAD_MAX_BYTES` | 音频上传上限；默认 100 MiB，代码允许 1 至 200 MiB |
 
 生产环境应从 Secret 管理器注入敏感变量。完成首次 Seed 后，如果日常启动不再执行 Seed，可以从常驻运行环境移除 `ADMIN_PASSWORD`。
 

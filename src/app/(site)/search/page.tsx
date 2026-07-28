@@ -5,6 +5,7 @@ import { EmptyState } from "@/components/content/empty-state";
 import type { PublicPost, PublicProject } from "@/components/content/content-types";
 import { PostCard } from "@/components/content/post-card";
 import { ProjectCard } from "@/components/content/project-card";
+import { PageIntro } from "@/components/site/page-intro";
 
 export const metadata: Metadata = {
   title: "站内搜索",
@@ -24,10 +25,14 @@ export default async function SearchPage({ searchParams }: { searchParams: Searc
   const projects = result.projects as PublicProject[];
 
   return (
-    <main id="main-content" className="px-[clamp(1rem,4vw,4rem)] py-[clamp(4rem,9vw,8rem)]">
-      <div className="mx-auto max-w-[1180px]">
-        <h1 className="text-[clamp(3.4rem,9vw,7.5rem)] font-black leading-[.88] tracking-[-.08em]">搜索</h1>
-        <form action="/search" role="search" className="relative mt-10">
+    <main id="main-content">
+      <PageIntro
+        eyebrow="站内检索"
+        title="搜索"
+        description="从技术名词、文章标题、项目目标或正文中的一句话开始，找回花园里的内容。"
+      />
+      <div className="mx-auto max-w-[1180px] px-[var(--page-gutter)] pb-[clamp(5rem,10vw,9rem)]">
+        <form action="/search" role="search" className="garden-panel relative p-2">
           <label htmlFor="site-search" className="sr-only">搜索文章和项目</label>
           <Search className="pointer-events-none absolute left-5 top-1/2 -translate-y-1/2 text-[var(--muted)]" aria-hidden size={24} />
           <input
@@ -36,7 +41,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Searc
             type="search"
             defaultValue={query}
             autoFocus
-            className="min-h-16 w-full rounded-xl border border-[var(--line)] bg-[var(--surface)] pl-14 pr-5 text-xl outline-none placeholder:text-[var(--muted)] focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-soft)]"
+            className="min-h-16 w-full rounded-[calc(var(--radius-panel)-.5rem)] border border-transparent bg-transparent pl-12 pr-4 text-base outline-none placeholder:text-[var(--muted)] focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-soft)] sm:pl-14 sm:pr-5 sm:text-xl"
             placeholder="输入标题、技术或正在解决的问题"
           />
         </form>

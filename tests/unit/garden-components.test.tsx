@@ -39,7 +39,10 @@ import { AtmosphereToggle } from "@/components/site/atmosphere/atmosphere-toggle
 import { PetalField } from "@/components/site/atmosphere/petal-field";
 import { ContentCalendar } from "@/components/site/home/content-calendar";
 import { TimezoneClock } from "@/components/site/home/timezone-clock";
-import { CompactAudioPlayer } from "@/components/site/music/audio-player";
+import {
+  CompactAudioPlayer,
+  FullAudioPlayer,
+} from "@/components/site/music/audio-player";
 import {
   AudioPlayerProvider,
   type AudioTrack,
@@ -150,6 +153,39 @@ describe("global audio player", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "播放音乐" }));
     await waitFor(() => expect(play).toHaveBeenCalledOnce());
+  });
+
+  it("follows LRC timestamps and marks the current lyric line", async () => {
+    const timedTrack: AudioTrack = {
+      ...track,
+      lyrics: "[00:00.00]第一行歌词\n[00:05.00]第二行歌词",
+    };
+    const scrollTo = vi.fn();
+    Object.defineProperty(HTMLElement.prototype, "scrollTo", {
+      configurable: true,
+      value: scrollTo,
+    });
+    const { container } = render(
+      <AudioPlayerProvider tracks={[timedTrack]}>
+        <FullAudioPlayer />
+      </AudioPlayerProvider>,
+    );
+    const audio = container.querySelector("audio");
+    expect(audio).not.toBeNull();
+    Object.defineProperty(audio, "currentTime", {
+      configurable: true,
+      value: 6,
+    });
+    fireEvent.timeUpdate(audio!);
+
+    await waitFor(() =>
+      expect(screen.getByText("第二行歌词")).toHaveAttribute(
+        "aria-current",
+        "true",
+      ),
+    );
+    expect(screen.getByText("第一行歌词")).not.toHaveAttribute("aria-current");
+    delete (HTMLElement.prototype as { scrollTo?: unknown }).scrollTo;
   });
 });
 

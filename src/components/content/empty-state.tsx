@@ -15,7 +15,7 @@ export function EmptyState({
   return (
     <div className="grid min-h-72 place-items-center rounded-xl border border-dashed border-[var(--line)] px-6 py-16 text-center">
       <div>
-        <Sprout className="mx-auto text-[var(--success)]" aria-hidden size={34} strokeWidth={1.5} />
+        <Sprout className="mx-auto text-[var(--accent)]" aria-hidden size={34} strokeWidth={1.5} />
         <h2 className="mt-5 text-2xl font-semibold tracking-[-.04em]">{title}</h2>
         <p className="mx-auto mt-3 max-w-md text-[var(--muted)]">{description}</p>
         {href && action ? (

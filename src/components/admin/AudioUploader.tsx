@@ -4,12 +4,18 @@ import { CheckCircle2, LoaderCircle, Music2, UploadCloud } from "lucide-react";
 import { useRef, useState } from "react";
 
 export type AudioUploadMetadata = {
+  album: string | null;
+  artist: string | null;
   audioUrl: string;
+  coverMediaId: string | null;
+  coverOriginalName: string | null;
   durationSeconds: number | null;
+  lyrics: string | null;
   mimeType: string;
   originalName: string;
   size: number;
   storedName: string;
+  title: string | null;
 };
 
 type AudioUploaderProps = {
@@ -43,12 +49,22 @@ function readMetadata(payload: unknown): AudioUploadMetadata {
   }
 
   return {
+    album: typeof value.album === "string" ? value.album : null,
+    artist: typeof value.artist === "string" ? value.artist : null,
     audioUrl,
+    coverMediaId:
+      typeof value.coverMediaId === "string" ? value.coverMediaId : null,
+    coverOriginalName:
+      typeof value.coverOriginalName === "string"
+        ? value.coverOriginalName
+        : null,
     durationSeconds: duration && Number.isFinite(duration) ? Math.round(duration) : null,
+    lyrics: typeof value.lyrics === "string" ? value.lyrics : null,
     mimeType,
     originalName,
     size: Math.round(size),
     storedName,
+    title: typeof value.title === "string" ? value.title : null,
   };
 }
 
@@ -87,6 +103,13 @@ export function AudioUploader({ onUploaded, value }: AudioUploaderProps) {
       setState({
         kind: "error",
         message: "仅支持 MP3、M4A、AAC 或 OGG 音频。",
+      });
+      return;
+    }
+    if (file.size > 100 * 1024 * 1024) {
+      setState({
+        kind: "error",
+        message: "音频不能超过 100 MB。",
       });
       return;
     }
@@ -186,7 +209,7 @@ export function AudioUploader({ onUploaded, value }: AudioUploaderProps) {
               : "拖入音频，或点击选择文件"}
           </span>
           <span className="mt-2 text-xs text-[var(--muted)]">
-            MP3、M4A、AAC、OGG；体积上限由服务端配置决定
+            MP3、M4A、AAC、OGG · 最大 100 MB · 自动读取可用的歌曲信息、封面与歌词
           </span>
         </span>
       </label>

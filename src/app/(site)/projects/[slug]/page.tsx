@@ -76,8 +76,8 @@ export default async function ProjectDetailPage({ params }: PageProps) {
           </Link>
           <div className="mt-10 grid gap-10 lg:grid-cols-12 lg:items-end">
             <div className="lg:col-span-8">
-              <p className="font-mono text-sm text-[var(--success)]">PROJECT CASE</p>
-              <h1 className="mt-5 text-[clamp(3.3rem,8vw,7.5rem)] font-black leading-[.88] tracking-[-.075em]">{project.title}</h1>
+              <p className="font-mono text-sm text-[var(--accent)]">PROJECT CASE</p>
+              <h1 className="mt-5 text-[clamp(3rem,7vw,6.2rem)] font-semibold leading-[.96] tracking-[-.045em]">{project.title}</h1>
             </div>
             <div className="lg:col-span-4">
               <p className="text-lg leading-8 text-[var(--muted)]">{project.summary}</p>
@@ -99,7 +99,7 @@ export default async function ProjectDetailPage({ params }: PageProps) {
         </div>
       </header>
 
-      <section className="border-y border-[var(--line)] px-[clamp(1rem,4vw,4rem)] py-8" aria-label="项目技术信息">
+      <section className="soft-section border-y border-[var(--line)] px-[var(--page-gutter)] py-8" aria-label="项目技术信息">
         <div className="mx-auto grid max-w-[1280px] gap-7 md:grid-cols-12">
           <div className="md:col-span-3">
             <p className="text-xs font-semibold text-[var(--muted)]">技术栈</p>
@@ -119,7 +119,7 @@ export default async function ProjectDetailPage({ params }: PageProps) {
       <section className="px-[clamp(1rem,4vw,4rem)] py-[clamp(5rem,10vw,9rem)]" aria-labelledby="project-process">
         <div className="mx-auto grid max-w-[1180px] gap-12 lg:grid-cols-12">
           <div className="lg:col-span-3">
-            <Layers3 className="text-[var(--success)]" aria-hidden size={30} strokeWidth={1.5} />
+            <Layers3 className="text-[var(--accent)]" aria-hidden size={30} strokeWidth={1.5} />
             <h2 id="project-process" className="mt-5 text-3xl font-semibold tracking-[-.05em]">从问题到实现</h2>
             <p className="mt-4 leading-7 text-[var(--muted)]">按真实决策顺序展开，不把技术名词当作结果。</p>
           </div>
@@ -133,7 +133,7 @@ export default async function ProjectDetailPage({ params }: PageProps) {
       </section>
 
       {gallery.length ? (
-        <section className="bg-[var(--surface-strong)] px-[clamp(1rem,4vw,4rem)] py-[clamp(5rem,10vw,9rem)]" aria-labelledby="project-gallery">
+        <section className="soft-section px-[var(--page-gutter)] py-[clamp(5rem,10vw,9rem)]" aria-labelledby="project-gallery">
           <div className="mx-auto max-w-[1400px]">
             <h2 id="project-gallery" className="mb-10 text-[clamp(2.4rem,5vw,4.5rem)] font-semibold tracking-[-.06em]">界面证据</h2>
             <ProjectGalleryViewer images={gallery} title={project.title} />
@@ -146,7 +146,7 @@ export default async function ProjectDetailPage({ params }: PageProps) {
           <h2 className="text-[clamp(2.5rem,5vw,4.5rem)] font-semibold leading-none tracking-[-.06em] lg:col-span-6">完成不是终点，复盘才让经验留下。</h2>
           <div className="lg:col-span-5 lg:col-start-8">
             <p className="text-lg leading-8 opacity-80">这个案例保留了当时的能力边界与判断。后续迭代会继续记录变化，而不会把旧问题悄悄抹掉。</p>
-            <Link href="/projects" className="mt-7 inline-flex min-h-11 items-center rounded-full bg-white px-5 font-semibold text-[#087E69]">
+            <Link href="/projects" className="mt-7 inline-flex min-h-11 items-center rounded-full bg-[var(--surface)] px-5 font-semibold text-[var(--accent)] shadow-[var(--shadow)]">
               继续看其他项目
             </Link>
           </div>

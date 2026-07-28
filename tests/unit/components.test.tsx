@@ -154,7 +154,9 @@ describe("editor and media controls", () => {
     });
 
     expect(
-      screen.getByText("仅支持 JPEG、PNG、WebP 或 AVIF 图片。"),
+      screen.getByText(
+        "支持 JPEG、PNG、WebP、AVIF、GIF、TIFF、HEIC 和 HEIF 图片。",
+      ),
     ).toHaveAttribute("class", expect.stringContaining("danger"));
     expect(navigationMocks.refresh).not.toHaveBeenCalled();
   });

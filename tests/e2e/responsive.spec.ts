@@ -84,6 +84,9 @@ test.describe("375 × 812 responsive layout", () => {
     page,
   }) => {
     await page.goto("/");
+    const carousel = page.getByRole("region", { name: "R7 的生活照片" });
+    await expect(carousel).toBeVisible();
+    await expect(carousel.locator("a")).toHaveCount(0);
     const [profile, content, widgets] = await Promise.all([
       page.locator(".home-profile-column").boundingBox(),
       page.locator(".home-main-column").boundingBox(),
@@ -177,9 +180,10 @@ test.describe("1440px garden homepage", () => {
 });
 
 test.describe("required acceptance viewport matrix", () => {
-  test("home layout adapts at 1280, 1024, 768, 430, 390 and 375 pixels", async ({
+  test("home layout adapts across required desktop, tablet and phone sizes", async ({
     page,
   }, testInfo) => {
+    test.setTimeout(120_000);
     test.skip(
       testInfo.project.name !== "chromium",
       "The viewport matrix is verified once in Chromium.",
@@ -195,9 +199,23 @@ test.describe("required acceptance viewport matrix", () => {
       }),
     );
 
-    for (const width of [1280, 1024, 768, 430, 390, 375]) {
-      await page.setViewportSize({ width, height: width < 768 ? 844 : 900 });
-      await page.goto("/", { waitUntil: "networkidle" });
+    const viewports = [
+      { width: 1280, height: 900 },
+      { width: 1024, height: 900 },
+      { width: 768, height: 1024 },
+      { width: 430, height: 932 },
+      { width: 393, height: 852 },
+      { width: 390, height: 844 },
+      { width: 375, height: 812 },
+      { width: 360, height: 800 },
+    ];
+
+    for (const { width, height } of viewports) {
+      await page.setViewportSize({ width, height });
+      await page.goto("/", { waitUntil: "domcontentloaded" });
+      await expect(page.locator(".home-layout")).toBeVisible({
+        timeout: 15_000,
+      });
       const [profile, content, widgets] = await Promise.all([
         page.locator(".home-profile-column").boundingBox(),
         page.locator(".home-main-column").boundingBox(),

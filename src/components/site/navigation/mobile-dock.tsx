@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 
 const links = [
   { href: "/", icon: Home, label: "首页", exact: true },
@@ -20,9 +21,34 @@ const links = [
 
 export function MobileDock() {
   const pathname = usePathname();
+  const [formFocused, setFormFocused] = useState(false);
+
+  useEffect(() => {
+    const isFormControl = (target: EventTarget | null) =>
+      target instanceof HTMLElement &&
+      Boolean(target.closest("input, textarea, select, [contenteditable='true']"));
+    const onFocusIn = (event: FocusEvent) => {
+      if (isFormControl(event.target)) setFormFocused(true);
+    };
+    const onFocusOut = () => {
+      window.requestAnimationFrame(() => {
+        setFormFocused(isFormControl(document.activeElement));
+      });
+    };
+    document.addEventListener("focusin", onFocusIn);
+    document.addEventListener("focusout", onFocusOut);
+    return () => {
+      document.removeEventListener("focusin", onFocusIn);
+      document.removeEventListener("focusout", onFocusOut);
+    };
+  }, []);
 
   return (
-    <nav aria-label="移动端快捷导航" className="mobile-dock">
+    <nav
+      aria-label="移动端快捷导航"
+      className="mobile-dock"
+      data-form-focused={formFocused ? "true" : undefined}
+    >
       <div className="mobile-dock__inner">
         {links.map(({ exact, href, icon: Icon, label }) => {
           const active = exact

@@ -6,6 +6,7 @@ import { EmptyState } from "@/components/content/empty-state";
 import type { PublicProject, Taxonomy } from "@/components/content/content-types";
 import { Pagination } from "@/components/content/pagination";
 import { ProjectCard } from "@/components/content/project-card";
+import { PageIntro } from "@/components/site/page-intro";
 
 export const metadata: Metadata = {
   title: "项目",
@@ -32,27 +33,16 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Sea
 
   return (
     <main id="main-content">
-      <header className="relative isolate overflow-hidden px-[clamp(1rem,4vw,4rem)] pb-[clamp(4rem,9vw,8rem)] pt-[clamp(4rem,9vw,8rem)]">
-        <span className="pointer-events-none absolute right-[-3vw] top-[-8vw] select-none text-[clamp(18rem,45vw,42rem)] font-black leading-none tracking-[-.15em] text-[color:var(--ink)/.04]" aria-hidden>7</span>
-        <div className="relative mx-auto grid max-w-[1400px] gap-10 lg:grid-cols-12 lg:items-end">
-          <div className="lg:col-span-9">
-            <p className="font-mono text-sm text-[var(--success)]">BUILD LOG</p>
-            <h1 className="mt-5 text-[clamp(4rem,11vw,10rem)] font-black leading-[.82] tracking-[-.085em]">
-              构建，
-              <br />
-              然后复盘。
-            </h1>
-          </div>
-          <p className="max-w-md text-lg leading-8 text-[var(--muted)] lg:col-span-3">
-            这里不只展示完成后的界面，也保留问题、约束、选择和失误。
-          </p>
-        </div>
-      </header>
+      <PageIntro
+        eyebrow="Build log"
+        title="把学习做成作品"
+        description="这里不只展示完成后的界面，也保留问题、约束、选择和失误。每个项目都是一段可以回看的成长记录。"
+      />
 
-      <section className="border-y border-[var(--line)] px-[clamp(1rem,4vw,4rem)] py-7" aria-label="项目筛选">
-        <div className="mx-auto flex max-w-[1400px] flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+      <section className="px-[var(--page-gutter)] pb-6" aria-label="项目筛选">
+        <div className="garden-panel mx-auto flex max-w-[var(--content-max)] flex-col gap-5 p-4 lg:flex-row lg:items-center lg:justify-between lg:p-5">
           <nav className="flex max-w-full gap-2 overflow-x-auto pb-1" aria-label="按技术筛选项目">
-            <Link href={query ? `/projects?q=${encodeURIComponent(query)}` : "/projects"} aria-current={!tag ? "page" : undefined} className={`shrink-0 rounded-full border px-4 py-2 text-sm font-semibold ${!tag ? "border-[var(--accent)] bg-[var(--accent-soft)] text-[var(--success)]" : "border-[var(--line)]"}`}>
+            <Link href={query ? `/projects?q=${encodeURIComponent(query)}` : "/projects"} aria-current={!tag ? "page" : undefined} className={`shrink-0 rounded-full border px-4 py-2 text-sm font-semibold ${!tag ? "border-[var(--accent)] bg-[var(--accent-soft)] text-[var(--accent)]" : "border-[var(--line)]"}`}>
               全部
             </Link>
             {tags.map((item) => (
@@ -60,7 +50,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Sea
                 key={item.slug}
                 href={`/projects?tag=${item.slug}${query ? `&q=${encodeURIComponent(query)}` : ""}`}
                 aria-current={tag === item.slug ? "page" : undefined}
-                className={`shrink-0 rounded-full border px-4 py-2 text-sm font-semibold ${tag === item.slug ? "border-[var(--accent)] bg-[var(--accent-soft)] text-[var(--success)]" : "border-[var(--line)]"}`}
+                className={`shrink-0 rounded-full border px-4 py-2 text-sm font-semibold ${tag === item.slug ? "border-[var(--accent)] bg-[var(--accent-soft)] text-[var(--accent)]" : "border-[var(--line)]"}`}
               >
                 {item.name}
               </Link>
@@ -75,8 +65,8 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Sea
         </div>
       </section>
 
-      <section className="px-[clamp(1rem,4vw,4rem)] py-[clamp(4rem,10vw,9rem)]">
-        <div className="mx-auto max-w-[1400px]">
+      <section className="px-[var(--page-gutter)] py-[clamp(3rem,8vw,7rem)]">
+        <div className="mx-auto max-w-[var(--content-max)]">
           {projects.length ? (
             <>
               <div className="grid gap-x-6 gap-y-20 md:grid-cols-12">
@@ -103,10 +93,10 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Sea
         </div>
       </section>
 
-      <section className="border-t border-[var(--line)] px-[clamp(1rem,4vw,4rem)] py-16">
-        <div className="mx-auto flex max-w-[1400px] flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <section className="soft-section border-t border-[var(--line)] px-[var(--page-gutter)] py-16">
+        <div className="mx-auto flex max-w-[var(--content-max)] flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-lg font-semibold">想了解某个项目没有写下的细节？</p>
-          <Link href="/contact" className="inline-flex items-center gap-2 font-semibold text-[var(--success)]">直接问我 <ArrowRight aria-hidden size={18} /></Link>
+          <Link href="/contact" className="inline-flex items-center gap-2 font-semibold text-[var(--accent)]">直接问我 <ArrowRight aria-hidden size={18} /></Link>
         </div>
       </section>
     </main>

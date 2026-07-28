@@ -47,26 +47,39 @@ type Notice = {
   message: string;
 } | null;
 
-const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
+const MAX_IMAGE_BYTES = 100 * 1024 * 1024;
 const imageFormats = new Map<string, ReadonlySet<string>>([
   ["image/jpeg", new Set(["jpg", "jpeg"])],
   ["image/png", new Set(["png"])],
   ["image/webp", new Set(["webp"])],
   ["image/avif", new Set(["avif"])],
+  ["image/gif", new Set(["gif"])],
+  ["image/tiff", new Set(["tif", "tiff"])],
+  ["image/heic", new Set(["heic"])],
+  ["image/heif", new Set(["heif"])],
 ]);
+const allImageExtensions = new Set(
+  [...imageFormats.values()].flatMap((extensions) => [...extensions]),
+);
 
 function extensionOf(filename: string) {
   return filename.split(".").pop()?.toLocaleLowerCase("en-US") ?? "";
 }
 
 function validateFile(file: File) {
-  const extensions = imageFormats.get(file.type.toLocaleLowerCase("en-US"));
-  if (!extensions) return "仅支持 JPEG、PNG、WebP 或 AVIF 图片。";
-  if (!extensions.has(extensionOf(file.name))) {
+  const extension = extensionOf(file.name);
+  const declaredType = file.type.toLocaleLowerCase("en-US");
+  const extensions = imageFormats.get(declaredType);
+  const genericDeclaredType =
+    declaredType === "" || declaredType === "application/octet-stream";
+  if ((!extensions && !genericDeclaredType) || !allImageExtensions.has(extension)) {
+    return "支持 JPEG、PNG、WebP、AVIF、GIF、TIFF、HEIC 和 HEIF 图片。";
+  }
+  if (extensions && !extensions.has(extension)) {
     return "文件扩展名与声明的图片类型不一致。";
   }
   if (file.size <= 0) return "图片文件不能为空。";
-  if (file.size > MAX_IMAGE_BYTES) return "单张图片不能超过 8 MB。";
+  if (file.size > MAX_IMAGE_BYTES) return "单张图片不能超过 100 MB。";
   return "";
 }
 
@@ -322,7 +335,7 @@ export function AlbumPhotoManager({
           }}
         >
           <input
-            accept=".jpg,.jpeg,.png,.webp,.avif,image/jpeg,image/png,image/webp,image/avif"
+            accept=".jpg,.jpeg,.png,.webp,.avif,.gif,.tif,.tiff,.heic,.heif,image/jpeg,image/png,image/webp,image/avif,image/gif,image/tiff,image/heic,image/heif"
             className="sr-only"
             disabled={running}
             multiple
@@ -353,7 +366,7 @@ export function AlbumPhotoManager({
                 : "拖入多张图片，或点击批量选择"}
             </span>
             <span className="mt-2 text-xs text-[var(--muted)]">
-              JPEG、PNG、WebP、AVIF · 每张最大 8 MB
+              JPEG、PNG、WebP、AVIF、GIF、TIFF、HEIC/HEIF · 每张最大 100 MB
             </span>
           </span>
         </label>

@@ -13,8 +13,10 @@ export async function loginAsAdmin(page: Page) {
   await page.getByLabel("邮箱").fill(adminEmail);
   await page.getByLabel("密码").fill(adminPassword);
   await page.getByRole("button", { name: "进入编辑室" }).click();
-  await expect(page).toHaveURL(/\/admin(?:\/)?$/);
-  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+  await expect(page).toHaveURL(/\/admin(?:\/)?$/, { timeout: 15_000 });
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible({
+    timeout: 15_000,
+  });
 }
 
 export async function expectHealthyPage(
@@ -28,7 +30,9 @@ export async function expectHealthyPage(
     response!.status(),
     `Expected ${path} to return a successful status`,
   ).toBeLessThan(400);
-  await expect(page.locator("main#main-content")).toBeVisible();
+  await expect(page.locator("main#main-content:visible")).toBeVisible({
+    timeout: 15_000,
+  });
   await expect(
     page.getByRole("heading", { level: 1, name: heading }),
   ).toBeVisible();

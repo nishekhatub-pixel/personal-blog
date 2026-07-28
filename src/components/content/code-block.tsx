@@ -19,7 +19,7 @@ export function CodeBlock({ code, language, children }: { code: string; language
         <button
           type="button"
           onClick={copyCode}
-          className="inline-flex min-h-9 items-center gap-2 rounded-full px-3 text-xs text-white/80 hover:bg-white/10"
+          className="inline-flex min-h-11 items-center gap-2 rounded-full px-3 text-xs text-white/80 hover:bg-white/10"
           aria-live="polite"
         >
           {copied ? <Check aria-hidden size={15} /> : <Copy aria-hidden size={15} />}

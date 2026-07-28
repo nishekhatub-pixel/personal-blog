@@ -287,10 +287,18 @@ export async function deleteComment(formData: FormData) {
   refreshContent();
 }
 
-export async function updateSettings(formData: FormData) {
+export type SettingsActionState = {
+  message: string;
+  ok: boolean;
+} | null;
+
+export async function updateSettings(
+  _previousState: SettingsActionState,
+  formData: FormData,
+): Promise<Exclude<SettingsActionState, null>> {
   await assertSameOrigin();
   await requireAdmin();
-  const settings = siteSettingsSchema.parse({
+  const parsed = siteSettingsSchema.safeParse({
     siteTitle: stringValue(formData, "siteTitle"),
     siteDescription: stringValue(formData, "siteDescription"),
     siteUrl: stringValue(formData, "siteUrl"),
@@ -321,6 +329,32 @@ export async function updateSettings(formData: FormData) {
     guestbookEnabled: checkbox(formData, "guestbookEnabled"),
     friendsEnabled: checkbox(formData, "friendsEnabled"),
   });
+  if (!parsed.success) {
+    const issue = parsed.error.issues[0];
+    const fieldLabels: Record<string, string> = {
+      authorName: "作者名称",
+      contactEmail: "联系邮箱",
+      email: "公开邮箱",
+      githubUrl: "GitHub URL",
+      latitude: "纬度",
+      longitude: "经度",
+      profileAvatar: "头像资源地址",
+      profileName: "花园展示名称",
+      siteDescription: "站点描述",
+      siteLaunchDate: "上线日期",
+      siteName: "花园名称",
+      siteSubtitle: "花园副标题",
+      siteTitle: "站点标题",
+      siteUrl: "站点 URL",
+      timezone: "IANA 时区",
+    };
+    const field = String(issue.path[0] ?? "设置内容");
+    return {
+      message: `${fieldLabels[field] ?? field}：${issue.message}`,
+      ok: false,
+    };
+  }
+  const settings = parsed.data;
   const groups: Record<string, string> = {
     siteTitle: "basic",
     siteDescription: "basic",
@@ -357,25 +391,29 @@ export async function updateSettings(formData: FormData) {
     value: value === null ? "" : String(value),
     group: groups[key] ?? "general",
   }));
-  await db.$transaction(
-    entries.map(({ key, value, group }) =>
-      db.siteSetting.upsert({
-        where: { key },
-        create: { key, value, group },
-        update: { value, group },
-      }),
-    ),
-  );
-  revalidatePath("/admin/settings");
-  revalidatePath("/", "layout");
-  revalidatePath("/photos");
-  revalidatePath("/music");
-  revalidatePath("/moments");
-  revalidatePath("/guestbook");
-  revalidatePath("/friends");
-  revalidatePath("/about");
-  revalidatePath("/calendar");
-  revalidatePath("/api/weather");
-  revalidatePath("/sitemap.xml");
-  refreshContent();
+  try {
+    await db.$transaction(
+      entries.map(({ key, value, group }) =>
+        db.siteSetting.upsert({
+          where: { key },
+          create: { key, value, group },
+          update: { value, group },
+        }),
+      ),
+    );
+  } catch (error) {
+    console.error("site_settings_update_failed", {
+      code:
+        error && typeof error === "object" && "code" in error
+          ? String(error.code)
+          : "unknown",
+      entryCount: entries.length,
+    });
+    return {
+      message: "数据库暂时无法保存设置，请稍后重试；原有设置没有被覆盖。",
+      ok: false,
+    };
+  }
+
+  redirect("/admin/settings?saved=1");
 }

@@ -2,6 +2,7 @@ import { Images } from "lucide-react";
 import type { Metadata } from "next";
 import { Pagination } from "@/components/content/pagination";
 import { PetalField } from "@/components/site/atmosphere/petal-field";
+import { PageIntro } from "@/components/site/page-intro";
 import { AlbumCard } from "@/components/site/photos/album-card";
 import { getPublishedPhotoAlbums } from "@/lib/garden-data";
 
@@ -32,24 +33,16 @@ export default async function PhotosPage({
   return (
     <main id="main-content">
       <PetalField className="opacity-35" seed="r7-photos" />
-      <header className="px-[var(--page-gutter)] pb-12 pt-[clamp(3.5rem,8vw,7rem)]">
-        <div className="mx-auto max-w-[var(--content-max)]">
-          <p className="mb-4 text-sm font-semibold text-[var(--accent)]">
-            真实相册
-          </p>
-          <h1 className="max-w-4xl text-[clamp(3rem,7vw,6rem)] font-black leading-[.92] tracking-[-.07em]">
-            照片墙
-          </h1>
-          <div className="mt-6 flex flex-wrap items-end justify-between gap-5">
-            <p className="max-w-[58ch] text-lg leading-8 text-[var(--muted)]">
-              保存日常照片，也保留照片背后的时间。每一本相册只展示真实发布的内容。
-            </p>
-            <p className="font-mono text-sm text-[var(--muted)]">
+      <PageIntro
+        eyebrow="真实相册"
+        title="照片墙"
+        description="保存日常照片，也保留照片背后的时间。每一本相册只展示真实发布的内容。"
+        actions={
+          <p className="font-mono text-sm text-[var(--muted)]">
               {albums.total} 本公开相册
-            </p>
-          </div>
-        </div>
-      </header>
+          </p>
+        }
+      />
 
       <section
         className="px-[var(--page-gutter)] pb-[clamp(5rem,10vw,9rem)]"
@@ -81,7 +74,7 @@ export default async function PhotosPage({
               <Pagination page={albums.page} totalPages={albums.totalPages} />
             </>
           ) : (
-            <div className="relative isolate grid min-h-[26rem] place-items-center overflow-hidden rounded-[var(--radius-panel,1.125rem)] border border-[var(--line)] bg-[var(--surface)] px-6 text-center shadow-[var(--shadow)]">
+            <div className="garden-panel relative isolate grid min-h-[26rem] place-items-center overflow-hidden px-6 text-center">
               <div className="grid max-w-xl justify-items-center">
                 <span className="grid size-16 place-items-center rounded-full bg-[var(--accent-soft)] text-[var(--accent)]">
                   <Images aria-hidden size={29} strokeWidth={1.4} />

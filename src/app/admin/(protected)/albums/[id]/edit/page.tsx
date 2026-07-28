@@ -47,12 +47,11 @@ export default async function EditAlbumPage({
         backHref="/admin/albums"
         backLabel="返回相册列表"
         created={query.created === "1"}
-        description="保存相册设置，并在下方批量添加照片、调整真实展示顺序。"
+        description="可直接从电脑批量上传照片；下方继续维护封面、说明和发布状态。"
         eyebrow="ALBUM / EDIT"
         saved={query.saved === "1"}
         title={album.title}
       />
-      <AlbumEditorForm album={album} mediaOptions={mediaOptions} />
       <AlbumPhotoManager
         albumId={album.id}
         initialPhotos={photos}
@@ -60,6 +59,9 @@ export default async function EditAlbumPage({
           .map((photo) => `${photo.id}:${photo.position}`)
           .join("|")}
       />
+      <div className="mt-12 border-t border-[var(--line)] pt-10">
+        <AlbumEditorForm album={album} mediaOptions={mediaOptions} />
+      </div>
     </>
   );
 }

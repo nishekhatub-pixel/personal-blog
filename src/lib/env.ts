@@ -4,13 +4,18 @@ const environmentSchema = z.object({
   APP_URL: z.string().url().default("http://localhost:3000"),
   SESSION_SECRET: z.string().min(24).default("r7-local-session-secret-2026-change-before-production"),
   IP_HASH_SECRET: z.string().min(24).default("r7-local-ip-hash-secret-2026-change-before-production"),
-  UPLOAD_MAX_BYTES: z.coerce.number().int().positive().max(16 * 1024 * 1024).default(8 * 1024 * 1024),
+  UPLOAD_MAX_BYTES: z.coerce
+    .number()
+    .int()
+    .min(1024 * 1024)
+    .max(100 * 1024 * 1024)
+    .default(100 * 1024 * 1024),
   AUDIO_UPLOAD_MAX_BYTES: z.coerce
     .number()
     .int()
     .min(1024 * 1024)
     .max(200 * 1024 * 1024)
-    .default(25 * 1024 * 1024),
+    .default(100 * 1024 * 1024),
 });
 
 const parsed = environmentSchema.safeParse({

@@ -12,6 +12,7 @@ import {
   MomentInteractions,
   type PublicMomentComment,
 } from "@/components/site/moments/moment-interactions";
+import { PageIntro } from "@/components/site/page-intro";
 import { getSiteSettings } from "@/lib/data";
 import {
   getMomentById,
@@ -116,7 +117,7 @@ function MomentCard({
   return (
     <article
       id={`moment-${moment.id}`}
-      className="min-w-0 rounded-[var(--radius-panel,1.125rem)] border border-[var(--line)] bg-[var(--surface)] p-5 shadow-[var(--shadow)] md:p-7"
+      className="garden-card min-w-0 p-5 md:p-7"
     >
       <header className="flex flex-wrap items-center justify-between gap-3">
         <time
@@ -238,24 +239,16 @@ export default async function MomentsPage({
 
   return (
     <main id="main-content">
-      <header className="px-[var(--page-gutter)] pb-12 pt-[clamp(3.5rem,8vw,7rem)]">
-        <div className="mx-auto max-w-[var(--content-max)]">
-          <p className="mb-4 text-sm font-semibold text-[var(--accent)]">
-            日常时间线
-          </p>
-          <h1 className="max-w-4xl text-[clamp(3rem,7vw,6rem)] font-black leading-[.92] tracking-[-.07em]">
-            说说
-          </h1>
-          <div className="mt-6 flex flex-wrap items-end justify-between gap-5">
-            <p className="max-w-[58ch] text-lg leading-8 text-[var(--muted)]">
-              记录无法长成文章的片刻。文字、心情、天气与照片，都来自真实发布的日常。
-            </p>
-            <p className="font-mono text-sm text-[var(--muted)]">
+      <PageIntro
+        eyebrow="日常时间线"
+        title="说说"
+        description="记录无法长成文章的片刻。文字、心情、天气与照片，都来自真实发布的日常。"
+        actions={
+          <p className="font-mono text-sm text-[var(--muted)]">
               {moments.total} 条公开记录
-            </p>
-          </div>
-        </div>
-      </header>
+          </p>
+        }
+      />
 
       <section className="px-[var(--page-gutter)] pb-[clamp(5rem,10vw,9rem)]">
         <div className="mx-auto max-w-4xl">
@@ -334,7 +327,7 @@ export default async function MomentsPage({
               <Pagination page={moments.page} totalPages={moments.totalPages} />
             </>
           ) : (
-            <div className="grid min-h-[28rem] place-items-center rounded-[var(--radius-panel,1.125rem)] border border-[var(--line)] bg-[var(--surface)] px-6 text-center shadow-[var(--shadow)]">
+            <div className="garden-panel grid min-h-[28rem] place-items-center px-6 text-center">
               <div className="max-w-lg">
                 <MessageSquareText
                   aria-hidden

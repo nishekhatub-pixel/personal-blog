@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getTags } from "@/lib/data";
 import { EmptyState } from "@/components/content/empty-state";
 import type { Taxonomy } from "@/components/content/content-types";
+import { PageIntro } from "@/components/site/page-intro";
 
 export const metadata: Metadata = {
   title: "内容标签",
@@ -16,14 +17,15 @@ export default async function TagsPage() {
   const maxCount = Math.max(1, ...tags.map((tag) => (tag._count?.posts || 0) + (tag._count?.projects || 0)));
 
   return (
-    <main id="main-content" className="px-[clamp(1rem,4vw,4rem)] py-[clamp(4rem,10vw,9rem)]">
-      <div className="mx-auto max-w-[1180px]">
-        <header className="grid gap-7 lg:grid-cols-12 lg:items-end">
-          <h1 className="text-[clamp(3.5rem,9vw,8rem)] font-black leading-[.88] tracking-[-.08em] lg:col-span-8">标签</h1>
-          <p className="max-w-md leading-7 text-[var(--muted)] lg:col-span-4">连接文章与项目的细粒度线索。字号只表达内容数量，不表达能力高低。</p>
-        </header>
+    <main id="main-content">
+      <PageIntro
+        eyebrow="交叉线索"
+        title="内容标签"
+        description="连接文章与项目的细粒度线索。字号只表达内容数量，不表达能力高低。"
+      />
+      <div className="mx-auto max-w-[1180px] px-[var(--page-gutter)] pb-[clamp(5rem,10vw,9rem)]">
         {tags.length ? (
-          <ul className="mt-20 flex flex-wrap items-baseline gap-x-7 gap-y-8" aria-label="全部标签">
+          <ul className="garden-panel flex flex-wrap items-baseline gap-x-7 gap-y-8 p-7 md:p-10" aria-label="全部标签">
             {tags.map((tag) => {
               const count = (tag._count?.posts || 0) + (tag._count?.projects || 0);
               const size = 1.05 + (count / maxCount) * 2.2;
@@ -31,7 +33,7 @@ export default async function TagsPage() {
                 <li key={tag.slug}>
                   <Link
                     href={`/blog?tag=${tag.slug}`}
-                    className="group inline-flex items-baseline gap-2 font-semibold tracking-[-.045em] hover:text-[var(--success)]"
+                    className="group inline-flex items-baseline gap-2 font-semibold tracking-[-.045em] hover:text-[var(--accent)]"
                     style={{ fontSize: `${size}rem` }}
                   >
                     {tag.name}
@@ -42,7 +44,7 @@ export default async function TagsPage() {
             })}
           </ul>
         ) : (
-          <div className="mt-16"><EmptyState title="还没有标签" description="文章和项目使用标签后，跨内容的线索会出现在这里。" /></div>
+          <div><EmptyState title="还没有标签" description="文章和项目使用标签后，跨内容的线索会出现在这里。" /></div>
         )}
       </div>
     </main>

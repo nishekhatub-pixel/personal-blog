@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getSiteSettings } from "@/lib/data";
 import { getCurrentMonthCalendarMarkers } from "@/lib/garden-data";
+import { PageIntro } from "@/components/site/page-intro";
 
 export const metadata: Metadata = {
   title: "内容日历",
@@ -78,27 +79,23 @@ export default async function CalendarPage({
   }).format(new Date(`${date.value}T12:00:00Z`));
 
   return (
-    <main className="px-[var(--page-gutter)] py-[clamp(3rem,8vw,7rem)]" id="main-content">
-      <div className="mx-auto max-w-[58rem]">
-        <Link
-          className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-[var(--muted)] hover:text-[var(--ink)]"
-          href="/"
-        >
-          <ArrowLeft aria-hidden="true" size={17} />
-          返回首页日历
-        </Link>
-        <header className="mt-8 border-b border-[var(--line)] pb-8">
-          <p className="font-mono text-xs uppercase tracking-[0.18em] text-[var(--accent)]">
-            Content calendar
-          </p>
-          <h1 className="mt-3 text-[clamp(2.7rem,7vw,5.8rem)] font-semibold tracking-[-.065em]">
-            {formattedDate}
-          </h1>
-          <p className="mt-5 max-w-2xl leading-8 text-[var(--muted)]">
-            日历只汇总已经公开的文章、项目更新、说说与照片，不展示草稿或审核中的互动内容。
-          </p>
-        </header>
+    <main id="main-content">
+      <PageIntro
+        eyebrow="Content calendar"
+        title={formattedDate}
+        description="日历只汇总已经公开的文章、项目更新、说说与照片，不展示草稿或审核中的互动内容。"
+        actions={
+          <Link
+            className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-[var(--muted)] hover:text-[var(--ink)]"
+            href="/"
+          >
+            <ArrowLeft aria-hidden="true" size={17} />
+            返回首页日历
+          </Link>
+        }
+      />
 
+      <div className="mx-auto max-w-[58rem] px-[var(--page-gutter)] pb-[clamp(5rem,10vw,9rem)]">
         {marker ? (
           <section className="mt-10" aria-labelledby="day-summary">
             <div className="flex flex-wrap items-center justify-between gap-4">
@@ -110,7 +107,7 @@ export default async function CalendarPage({
                 {marker.types.map((type) => typeLabels[type]).join("、")}
               </p>
             </div>
-            <ul className="mt-5 divide-y divide-[var(--line)] border-y border-[var(--line)]">
+            <ul className="garden-panel mt-5 divide-y divide-[var(--line)] overflow-hidden px-6">
               {marker.labels.map((label) => (
                 <li className="py-5 leading-7" key={label}>
                   {label}
@@ -124,7 +121,7 @@ export default async function CalendarPage({
             ) : null}
           </section>
         ) : (
-          <section className="mt-10 rounded-[1.125rem] border border-dashed border-[var(--line)] bg-[var(--surface)] p-8">
+          <section className="garden-panel p-8">
             <CalendarDays aria-hidden="true" className="text-[var(--accent)]" size={30} />
             <h2 className="mt-5 text-2xl font-semibold">这一天没有公开记录</h2>
             <p className="mt-3 leading-7 text-[var(--muted)]">
@@ -135,7 +132,7 @@ export default async function CalendarPage({
 
         <nav
           aria-label="继续浏览"
-          className="mt-10 grid border-l border-t border-[var(--line)] sm:grid-cols-4"
+          className="garden-panel mt-10 grid overflow-hidden sm:grid-cols-4"
         >
           {[
             ["/archive", "文章归档"],

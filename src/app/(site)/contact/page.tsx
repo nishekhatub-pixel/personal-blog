@@ -2,6 +2,7 @@ import { Mail, MessageSquareText } from "lucide-react";
 import type { Metadata } from "next";
 import { getSiteSettings } from "@/lib/data";
 import { ContactForm } from "@/components/site/public-forms";
+import { PageIntro } from "@/components/site/page-intro";
 
 export const metadata: Metadata = {
   title: "联系",
@@ -15,32 +16,28 @@ export default async function ContactPage() {
   const email = settings.contactEmail && !settings.contactEmail.endsWith("@example.com") ? settings.contactEmail : "";
 
   return (
-    <main id="main-content" className="px-[clamp(1rem,4vw,4rem)] py-[clamp(4rem,10vw,9rem)]">
-      <div className="mx-auto max-w-[1180px]">
-        <header className="grid gap-9 lg:grid-cols-12">
-          <div className="lg:col-span-8">
-            <p className="flex items-center gap-2 text-sm font-semibold text-[var(--success)]"><MessageSquareText aria-hidden size={18} /> 联系 R7</p>
-            <h1 className="mt-5 text-[clamp(3.5rem,9vw,8rem)] font-black leading-[.87] tracking-[-.08em]">
-              从一个具体问题
-              <br />
-              开始交流。
-            </h1>
-          </div>
-          <div className="lg:col-span-4 lg:pt-12">
-            <p className="text-lg leading-8 text-[var(--muted)]">项目细节、学习方法、网站反馈，或者一次真诚的同学交流，都欢迎。</p>
+    <main id="main-content">
+      <PageIntro
+        eyebrow={<><MessageSquareText aria-hidden size={17} /> 联系 R7</>}
+        title="从一个具体问题开始交流"
+        description="项目细节、学习方法、网站反馈，或者一次真诚的同学交流，都欢迎。"
+        actions={
+          <>
             {email ? (
-              <a href={`mailto:${email}`} className="mt-7 inline-flex items-center gap-2 font-semibold text-[var(--success)]">
+              <a href={`mailto:${email}`} className="inline-flex min-h-11 items-center gap-2 font-semibold text-[var(--accent)]">
                 <Mail aria-hidden size={18} /> {email}
               </a>
             ) : (
-              <p className="mt-7 inline-flex items-center gap-2 text-sm font-semibold">
+              <p className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold">
                 <Mail aria-hidden size={18} /> 站内留言会安全存入后台
               </p>
             )}
-          </div>
-        </header>
+          </>
+        }
+      />
 
-        <section className="mt-20 grid gap-12 border-t border-[var(--line)] pt-12 lg:grid-cols-12" aria-labelledby="contact-form-heading">
+      <div className="mx-auto max-w-[1180px] px-[var(--page-gutter)] pb-[clamp(5rem,10vw,9rem)]">
+        <section className="garden-panel grid gap-10 p-6 lg:grid-cols-12 lg:p-10" aria-labelledby="contact-form-heading">
           <div className="lg:col-span-3">
             <h2 id="contact-form-heading" className="text-3xl font-semibold tracking-[-.05em]">写下你的想法</h2>
             <p className="mt-4 leading-7 text-[var(--muted)]">我会阅读每一条有效留言。请提供可回复的邮箱，不会公开或用于订阅。</p>

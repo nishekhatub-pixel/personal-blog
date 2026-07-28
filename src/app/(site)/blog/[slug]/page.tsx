@@ -80,8 +80,8 @@ export default async function ArticlePage({ params }: PageProps) {
             </Link>
             <div className="mt-10 grid gap-10 lg:grid-cols-12 lg:items-end">
               <div className="lg:col-span-9">
-                <Link href={`/blog?category=${post.category.slug}`} className="text-sm font-semibold text-[var(--success)]">{post.category.name}</Link>
-                <h1 className="mt-5 text-[clamp(3rem,7vw,6.7rem)] font-black leading-[.94] tracking-[-.065em]">{post.title}</h1>
+                <Link href={`/blog?category=${post.category.slug}`} className="text-sm font-semibold text-[var(--accent)]">{post.category.name}</Link>
+                <h1 className="mt-5 text-[clamp(2.8rem,6.5vw,5.8rem)] font-semibold leading-[1.02] tracking-[-.045em]">{post.title}</h1>
                 <p className="mt-7 max-w-3xl text-[clamp(1.05rem,1.5vw,1.25rem)] leading-8 text-[var(--muted)]">{post.excerpt}</p>
               </div>
               <div className="flex lg:col-span-3 lg:justify-end">
@@ -123,18 +123,18 @@ export default async function ArticlePage({ params }: PageProps) {
         ) : null}
       </article>
 
-      <nav className="border-y border-[var(--line)]" aria-label="相邻文章">
+      <nav className="soft-section border-y border-[var(--line)]" aria-label="相邻文章">
         <div className="mx-auto grid max-w-[1280px] md:grid-cols-2">
           {neighbors.previous ? (
             <Link href={`/blog/${neighbors.previous.slug}`} className="group p-7 md:border-r md:border-[var(--line)] md:p-10">
               <span className="inline-flex items-center gap-2 text-xs text-[var(--muted)]"><ArrowLeft aria-hidden size={16} /> 上一篇</span>
-              <span className="mt-4 block text-2xl font-semibold tracking-[-.04em] group-hover:text-[var(--success)]">{neighbors.previous.title}</span>
+              <span className="mt-4 block text-2xl font-semibold tracking-[-.04em] group-hover:text-[var(--accent)]">{neighbors.previous.title}</span>
             </Link>
           ) : <span className="hidden md:block" />}
           {neighbors.next ? (
             <Link href={`/blog/${neighbors.next.slug}`} className="group border-t border-[var(--line)] p-7 text-right md:border-t-0 md:p-10">
               <span className="inline-flex items-center gap-2 text-xs text-[var(--muted)]">下一篇 <ArrowRight aria-hidden size={16} /></span>
-              <span className="mt-4 block text-2xl font-semibold tracking-[-.04em] group-hover:text-[var(--success)]">{neighbors.next.title}</span>
+              <span className="mt-4 block text-2xl font-semibold tracking-[-.04em] group-hover:text-[var(--accent)]">{neighbors.next.title}</span>
             </Link>
           ) : <span className="hidden md:block" />}
         </div>

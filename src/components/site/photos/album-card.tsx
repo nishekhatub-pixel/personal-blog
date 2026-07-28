@@ -22,7 +22,7 @@ export function AlbumCard({
   const date = formatDate(album.recordDate ?? album.publishedAt);
 
   return (
-    <article className="group h-full overflow-hidden rounded-[var(--radius-panel,1.125rem)] border border-[var(--line)] bg-[var(--surface)] shadow-[var(--shadow)]">
+    <article className="group garden-card h-full overflow-hidden">
       <Link
         href={`/photos/${album.slug}`}
         className="flex h-full min-h-11 flex-col focus-visible:outline-offset-[-3px]"
@@ -43,7 +43,7 @@ export function AlbumCard({
                   ? "(max-width: 768px) 100vw, (max-width: 1280px) 66vw, 58vw"
                   : "(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 34vw"
               }
-              className="object-cover transition-transform duration-500 group-hover:scale-[1.025]"
+              className="object-cover transition-transform duration-500 group-hover:scale-[1.025] motion-reduce:transition-none"
             />
           </div>
         ) : (
