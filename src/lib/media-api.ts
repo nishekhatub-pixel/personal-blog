@@ -56,9 +56,20 @@ export async function uploadMediaResponse(request: Request) {
     }
     const file = formData.get("file");
     const alt = formData.get("alt");
+    const requestedKind = formData.get("kind");
+    const storageKind =
+      requestedKind === "photos" ||
+      requestedKind === "music" ||
+      requestedKind === "avatars"
+        ? requestedKind
+        : "images";
     if (!(file instanceof File)) return NextResponse.json({ error: "请选择图片文件。" }, { status: 400 });
     const { processMediaUpload } = await import("@/lib/uploads");
-    const media = await processMediaUpload(file, typeof alt === "string" ? alt : "");
+    const media = await processMediaUpload(
+      file,
+      typeof alt === "string" ? alt : "",
+      storageKind,
+    );
     return NextResponse.json({ media }, { status: 201 });
   } catch (error) {
     const message = error instanceof Error ? error.message : "上传失败。";

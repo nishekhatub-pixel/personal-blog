@@ -10,11 +10,17 @@ import {
 } from "music-metadata";
 import { env } from "@/lib/env";
 import { httpsUrlSchema } from "@/lib/garden-validation";
+import {
+  ensureStorageLayout,
+  publicUploadUrl,
+  resolveUploadSegments,
+  storageDirectory,
+} from "@/lib/media-storage";
 
 type SupportedAudioMime = "audio/mpeg" | "audio/mp4" | "audio/aac" | "audio/ogg";
 type SupportedAudioExtension = "mp3" | "m4a" | "aac" | "ogg";
 
-const AUDIO_UPLOAD_ROOT = path.resolve(process.cwd(), "public", "uploads", "audio");
+const AUDIO_STORAGE_FOLDERS = ["music", "audio"] as const;
 const storedAudioNamePattern =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\.(mp3|m4a|aac|ogg)$/;
 
@@ -65,15 +71,14 @@ function hasExecutableSignature(buffer: Buffer) {
 }
 
 function safeAudioPath(url: string) {
-  if (!/^\/uploads\/audio\/\d{4}\/\d{2}\/[a-f0-9-]+\.(mp3|m4a|aac|ogg)$/.test(url)) {
+  const match =
+    /^\/uploads\/(music|audio)\/(\d{4})\/(0[1-9]|1[0-2])\/([a-f0-9-]+\.(?:mp3|m4a|aac|ogg))$/.exec(
+      url,
+    );
+  if (!match) {
     throw new Error("音频路径格式无效。");
   }
-  const target = path.resolve(process.cwd(), "public", `.${url}`);
-  const relative = path.relative(AUDIO_UPLOAD_ROOT, target);
-  if (relative.startsWith("..") || path.isAbsolute(relative)) {
-    throw new Error("音频路径越界。");
-  }
-  return target;
+  return resolveUploadSegments(match.slice(1));
 }
 
 export type StoredAudio = {
@@ -170,8 +175,10 @@ export async function storeAudioUpload(file: File): Promise<StoredAudio> {
   }
 
   const now = new Date();
-  const directorySegment = `${now.getUTCFullYear()}/${String(now.getUTCMonth() + 1).padStart(2, "0")}`;
-  const outputDirectory = path.join(AUDIO_UPLOAD_ROOT, directorySegment);
+  const year = String(now.getUTCFullYear());
+  const month = String(now.getUTCMonth() + 1).padStart(2, "0");
+  await ensureStorageLayout();
+  const outputDirectory = storageDirectory("music", year, month);
   await mkdir(outputDirectory, { recursive: true });
 
   let metadata: IAudioMetadata | null = null;
@@ -193,7 +200,7 @@ export async function storeAudioUpload(file: File): Promise<StoredAudio> {
   }
 
   const storedName = `${randomUUID()}.${format.storedExtension}`;
-  const audioUrl = `/uploads/audio/${directorySegment}/${storedName}`;
+  const audioUrl = publicUploadUrl("music", year, month, storedName);
   await writeFile(safeAudioPath(audioUrl), input, { flag: "wx" });
 
   const metadataTitle = metadata?.common.title?.trim() || null;
@@ -217,6 +224,7 @@ export async function storeAudioUpload(file: File): Promise<StoredAudio> {
       const cover = await processMediaUpload(
         coverFile,
         `${metadataTitle || path.basename(originalName, path.extname(originalName)) || "音乐"} 封面`,
+        "music",
       );
       coverMediaId = cover.id;
     } catch (error) {
@@ -308,35 +316,46 @@ export async function cleanupOrphanedAudio(
 ) {
   const cutoff = Date.now() - Math.max(24 * 60 * 60 * 1000, olderThanMs);
   let removed = 0;
-  let years;
-  try {
-    years = await readdir(AUDIO_UPLOAD_ROOT, { withFileTypes: true });
-  } catch (error) {
-    const code =
-      error && typeof error === "object" && "code" in error ? error.code : "";
-    if (code === "ENOENT") return 0;
-    throw error;
-  }
+  for (const folder of AUDIO_STORAGE_FOLDERS) {
+    const root =
+      folder === "music"
+        ? storageDirectory("music")
+        : resolveUploadSegments(["audio"]);
+    let years;
+    try {
+      years = await readdir(root, { withFileTypes: true });
+    } catch (error) {
+      const code =
+        error && typeof error === "object" && "code" in error ? error.code : "";
+      if (code === "ENOENT") continue;
+      throw error;
+    }
 
-  for (const year of years) {
-    if (!year.isDirectory() || !/^\d{4}$/.test(year.name)) continue;
-    const yearPath = path.join(AUDIO_UPLOAD_ROOT, year.name);
-    const months = await readdir(yearPath, { withFileTypes: true });
-    for (const month of months) {
-      if (!month.isDirectory() || !/^(0[1-9]|1[0-2])$/.test(month.name)) {
-        continue;
-      }
-      const monthPath = path.join(yearPath, month.name);
-      const files = await readdir(monthPath, { withFileTypes: true });
-      for (const file of files) {
-        if (!file.isFile() || !storedAudioNamePattern.test(file.name)) continue;
-        const audioUrl = `/uploads/audio/${year.name}/${month.name}/${file.name}`;
-        if (referencedUrls.has(audioUrl)) continue;
-        const target = safeAudioPath(audioUrl);
-        const fileStat = await stat(target);
-        if (fileStat.mtimeMs >= cutoff) continue;
-        await unlink(target);
-        removed += 1;
+    for (const year of years) {
+      if (!year.isDirectory() || !/^\d{4}$/.test(year.name)) continue;
+      const yearPath = path.join(root, year.name);
+      const months = await readdir(yearPath, { withFileTypes: true });
+      for (const month of months) {
+        if (!month.isDirectory() || !/^(0[1-9]|1[0-2])$/.test(month.name)) {
+          continue;
+        }
+        const monthPath = path.join(yearPath, month.name);
+        const files = await readdir(monthPath, { withFileTypes: true });
+        for (const file of files) {
+          if (!file.isFile() || !storedAudioNamePattern.test(file.name)) continue;
+          const audioUrl = publicUploadUrl(
+            folder,
+            year.name,
+            month.name,
+            file.name,
+          );
+          if (referencedUrls.has(audioUrl)) continue;
+          const target = safeAudioPath(audioUrl);
+          const fileStat = await stat(target);
+          if (fileStat.mtimeMs >= cutoff) continue;
+          await unlink(target);
+          removed += 1;
+        }
       }
     }
   }

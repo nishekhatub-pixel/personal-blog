@@ -24,7 +24,14 @@ import {
   processMediaUpload,
 } from "@/lib/uploads";
 import { env } from "@/lib/env";
-import { deleteMediaAndFiles } from "@/lib/media-storage";
+import {
+  deleteMediaAndFiles,
+  publicUploadUrl,
+  safeUploadPath,
+  STORAGE_KINDS,
+  UPLOAD_ROOT,
+} from "@/lib/media-storage";
+import path from "node:path";
 
 describe("media upload validation", () => {
   beforeEach(() => {
@@ -124,5 +131,39 @@ describe("media upload validation", () => {
       expect.stringContaining('"event":"media.cleanup.partial"'),
     );
     warning.mockRestore();
+  });
+
+  it("resolves portable storage URLs inside the configured upload root", () => {
+    expect(STORAGE_KINDS).toEqual([
+      "images",
+      "photos",
+      "music",
+      "avatars",
+      "temp",
+    ]);
+    const url = publicUploadUrl(
+      "photos",
+      "2026",
+      "07",
+      "4d6f8365-77d8-4b6d-911d-0e83d0e7c2b1-1200.webp",
+    );
+    expect(url).toBe(
+      "/uploads/photos/2026/07/4d6f8365-77d8-4b6d-911d-0e83d0e7c2b1-1200.webp",
+    );
+    const target = safeUploadPath(url);
+    expect(path.relative(UPLOAD_ROOT, target)).toBe(
+      path.join(
+        "photos",
+        "2026",
+        "07",
+        "4d6f8365-77d8-4b6d-911d-0e83d0e7c2b1-1200.webp",
+      ),
+    );
+    expect(() => safeUploadPath("/uploads/photos/../../outside.txt")).toThrow(
+      "媒体路径",
+    );
+    expect(() =>
+      safeUploadPath("/uploads/photos/%2e%2e/outside.txt"),
+    ).toThrow("媒体路径");
   });
 });

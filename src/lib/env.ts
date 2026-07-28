@@ -16,6 +16,8 @@ const environmentSchema = z.object({
     .min(1024 * 1024)
     .max(200 * 1024 * 1024)
     .default(100 * 1024 * 1024),
+  STORAGE_DRIVER: z.enum(["local", "cos"]).default("local"),
+  UPLOAD_ROOT: z.string().trim().min(1).optional(),
 });
 
 const parsed = environmentSchema.safeParse({
@@ -24,6 +26,8 @@ const parsed = environmentSchema.safeParse({
   IP_HASH_SECRET: process.env.IP_HASH_SECRET,
   UPLOAD_MAX_BYTES: process.env.UPLOAD_MAX_BYTES,
   AUDIO_UPLOAD_MAX_BYTES: process.env.AUDIO_UPLOAD_MAX_BYTES,
+  STORAGE_DRIVER: process.env.STORAGE_DRIVER,
+  UPLOAD_ROOT: process.env.UPLOAD_ROOT,
 });
 
 if (!parsed.success) {

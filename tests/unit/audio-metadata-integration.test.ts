@@ -80,7 +80,7 @@ describe("local audio metadata integration", () => {
       expect(stored.artist).toBe("R7");
       expect(stored.album).toBe("本地音乐");
       expect(stored.lyrics).toContain("第一行歌词");
-      expect(stored.audioUrl).toMatch(/^\/uploads\/audio\/\d{4}\/\d{2}\//);
+      expect(stored.audioUrl).toMatch(/^\/uploads\/music\/\d{4}\/\d{2}\//);
       await expect(verifyStoredAudio(stored)).resolves.toBeUndefined();
     } finally {
       await deleteStoredAudio(stored.audioUrl);

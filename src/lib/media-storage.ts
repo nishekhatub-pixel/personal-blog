@@ -1,17 +1,97 @@
-import { unlink } from "node:fs/promises";
+import { mkdir, unlink } from "node:fs/promises";
 import path from "node:path";
 import { db } from "@/lib/db";
+import { env } from "@/lib/env";
 
-export const UPLOAD_ROOT = path.resolve(process.cwd(), "public", "uploads");
+export const STORAGE_KINDS = [
+  "images",
+  "photos",
+  "music",
+  "avatars",
+  "temp",
+] as const;
 
-export function safeUploadPath(url: string) {
-  if (!url.startsWith("/uploads/")) throw new Error("媒体路径无效。");
-  const target = path.resolve(process.cwd(), "public", `.${url}`);
+export type StorageKind = (typeof STORAGE_KINDS)[number];
+
+const defaultUploadRoot = path.join(
+  /* turbopackIgnore: true */
+  process.cwd(),
+  "public",
+  "uploads",
+);
+
+export const UPLOAD_ROOT = path.resolve(
+  /* turbopackIgnore: true */
+  env.UPLOAD_ROOT ?? defaultUploadRoot,
+);
+
+function assertLocalStorage() {
+  if (env.STORAGE_DRIVER !== "local") {
+    throw new Error(
+      `存储驱动 ${env.STORAGE_DRIVER} 尚未配置。请先使用 STORAGE_DRIVER=local。`,
+    );
+  }
+}
+
+function assertSafeSegments(segments: readonly string[]) {
+  if (
+    segments.length === 0 ||
+    segments.some(
+      (segment) =>
+        !segment ||
+        segment === "." ||
+        segment === ".." ||
+        segment.includes("/") ||
+        segment.includes("\\") ||
+        segment.includes("\0"),
+    )
+  ) {
+    throw new Error("媒体路径无效。");
+  }
+}
+
+export function resolveUploadSegments(segments: readonly string[]) {
+  assertLocalStorage();
+  assertSafeSegments(segments);
+  const target = path.resolve(UPLOAD_ROOT, ...segments);
   const relative = path.relative(UPLOAD_ROOT, target);
-  if (relative.startsWith("..") || path.isAbsolute(relative)) {
+  if (!relative || relative.startsWith("..") || path.isAbsolute(relative)) {
     throw new Error("媒体路径越界。");
   }
   return target;
+}
+
+export function storageDirectory(
+  kind: StorageKind,
+  ...segments: readonly string[]
+) {
+  return resolveUploadSegments([kind, ...segments]);
+}
+
+export function publicUploadUrl(...segments: readonly string[]) {
+  assertSafeSegments(segments);
+  return `/uploads/${segments.map(encodeURIComponent).join("/")}`;
+}
+
+export async function ensureStorageLayout() {
+  assertLocalStorage();
+  await Promise.all(
+    STORAGE_KINDS.map((kind) =>
+      mkdir(storageDirectory(kind), { recursive: true }),
+    ),
+  );
+}
+
+export function safeUploadPath(url: string) {
+  if (
+    !url.startsWith("/uploads/") ||
+    url.includes("?") ||
+    url.includes("#") ||
+    url.includes("%")
+  ) {
+    throw new Error("媒体路径无效。");
+  }
+  return resolveUploadSegments(url.slice("/uploads/".length).split("/"));
 }
 
 export async function deleteMediaAndFiles(id: string) {

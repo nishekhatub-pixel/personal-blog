@@ -108,6 +108,7 @@ function uploadMedia(
     const body = new FormData();
     body.append("file", file);
     body.append("alt", alt);
+    body.append("kind", "photos");
 
     const request = new XMLHttpRequest();
     request.open("POST", "/api/admin/media");

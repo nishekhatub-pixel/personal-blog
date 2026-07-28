@@ -4,7 +4,13 @@ import path from "node:path";
 import { fileTypeFromBuffer } from "file-type";
 import { db } from "@/lib/db";
 import { env } from "@/lib/env";
-import { safeUploadPath, UPLOAD_ROOT } from "@/lib/media-storage";
+import {
+  ensureStorageLayout,
+  publicUploadUrl,
+  safeUploadPath,
+  storageDirectory,
+  type StorageKind,
+} from "@/lib/media-storage";
 
 const ACCEPTED_TYPES = {
   "image/jpeg": new Set(["jpg", "jpeg"]),
@@ -30,7 +36,16 @@ function loadSharp() {
   return sharpPromise;
 }
 
-export async function processMediaUpload(file: File, alt: string) {
+type ImageStorageKind = Extract<
+  StorageKind,
+  "images" | "photos" | "music" | "avatars"
+>;
+
+export async function processMediaUpload(
+  file: File,
+  alt: string,
+  storageKind: ImageStorageKind = "images",
+) {
   if (!file || file.size === 0) throw new Error("请选择图片文件。");
   if (file.size > env.UPLOAD_MAX_BYTES) {
     throw new Error(
@@ -79,8 +94,10 @@ export async function processMediaUpload(file: File, alt: string) {
   if (!metadata.width || !metadata.height) throw new Error("图片尺寸无效。");
 
   const now = new Date();
-  const directorySegment = `${now.getUTCFullYear()}/${String(now.getUTCMonth() + 1).padStart(2, "0")}`;
-  const outputDirectory = path.join(UPLOAD_ROOT, directorySegment);
+  const year = String(now.getUTCFullYear());
+  const month = String(now.getUTCMonth() + 1).padStart(2, "0");
+  await ensureStorageLayout();
+  const outputDirectory = storageDirectory(storageKind, year, month);
   await mkdir(outputDirectory, { recursive: true });
 
   const baseName = randomUUID();
@@ -103,7 +120,12 @@ export async function processMediaUpload(file: File, alt: string) {
       .webp({ quality: width <= 320 ? 78 : 84, effort: 5 })
       .toBuffer();
     await writeFile(outputPath, encoded, { flag: "wx" });
-    variants[String(width)] = `/uploads/${directorySegment}/${filename}`;
+    variants[String(width)] = publicUploadUrl(
+      storageKind,
+      year,
+      month,
+      filename,
+    );
   }
 
   const largestWidth = uniqueWidths.at(-1)!;

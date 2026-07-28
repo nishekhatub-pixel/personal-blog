@@ -121,6 +121,29 @@ describe("audio upload validation", () => {
       ),
     ).rejects.toThrow("MIME");
   });
+
+  it("stores new local audio under the portable music directory", async () => {
+    fileTypeMocks.fromBuffer.mockResolvedValue({
+      ext: "mp3",
+      mime: "audio/mpeg",
+    });
+    const stored = await storeAudioUpload(
+      audioFile(
+        new Uint8Array([
+          0x49, 0x44, 0x33, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        ]),
+      ),
+    );
+
+    expect(stored.audioUrl).toMatch(
+      /^\/uploads\/music\/\d{4}\/\d{2}\/[a-f0-9-]+\.mp3$/,
+    );
+    expect(fsMocks.writeFile).toHaveBeenCalledWith(
+      expect.stringMatching(/[\\/]music[\\/]\d{4}[\\/]\d{2}[\\/].+\.mp3$/),
+      expect.any(Buffer),
+      { flag: "wx" },
+    );
+  });
 });
 
 describe("stored audio re-verification", () => {
