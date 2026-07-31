@@ -151,7 +151,7 @@ export default async function AdminAlbumsPage({
                     successMessage="相册已删除。"
                   >
                     <input name="id" type="hidden" value={album.id} />
-                    <ConfirmButton message={`确定删除相册“${album.title}”？其中的照片记录会同时删除，但媒体库原文件保留。`}>
+                    <ConfirmButton message={`确定删除相册“${album.title}”？其中的照片会保留并变为未归档，媒体库原文件不受影响。`}>
                       <span className="grid size-11 place-items-center">
                         <span className="sr-only">删除相册“{album.title}”</span>
                         <Trash2 aria-hidden="true" size={15} />

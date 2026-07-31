@@ -72,8 +72,10 @@ function readUploadedMedia(payload: unknown): UploadedMedia {
 
 export function MediaUploader({
   onUploaded,
+  refreshAfterUpload = true,
 }: {
   onUploaded?: (media: UploadedMedia) => void;
+  refreshAfterUpload?: boolean;
 } = {}) {
   const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
@@ -124,7 +126,7 @@ export function MediaUploader({
             message: "上传完成，响应式版本已经生成。",
           });
           if (inputRef.current) inputRef.current.value = "";
-          router.refresh();
+          if (refreshAfterUpload) router.refresh();
         } catch (error) {
           setState({
             kind: "error",

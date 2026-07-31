@@ -38,6 +38,33 @@ describe("weather service", () => {
     expect(fetcher).not.toHaveBeenCalled();
   });
 
+  it("returns administrator weather without calling Open-Meteo", async () => {
+    const fetcher = vi.fn();
+
+    const result = await fetchWeather(
+      {
+        ...configured,
+        mode: "manual",
+        manualCondition: "小雨",
+        manualDescription: "晚些时候转凉。",
+        manualTemperature: 24.6,
+      },
+      fetcher as typeof fetch,
+    );
+
+    expect(result).toMatchObject({
+      status: "ready",
+      source: "manual",
+      city: "广州",
+      code: 61,
+      condition: "小雨",
+      description: "晚些时候转凉。",
+      temperature: 24.6,
+      attribution: null,
+    });
+    expect(fetcher).not.toHaveBeenCalled();
+  });
+
   it("maps an official Open-Meteo response and requests a 30-minute cache", async () => {
     const fetcher = vi.fn().mockResolvedValue(
       new Response(

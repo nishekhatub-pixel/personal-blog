@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, ArrowRight, CalendarDays, MapPin, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, CalendarDays, Images, MapPin, X } from "lucide-react";
 import Image from "next/image";
 import {
   useEffect,
@@ -10,6 +10,7 @@ import {
 } from "react";
 
 export type LightboxPhoto = {
+  albumLabel?: string | null;
   id: string;
   url: string;
   width: number;
@@ -131,7 +132,7 @@ export function PhotoLightbox({ photos }: { photos: LightboxPhoto[] }) {
               ) : (
                 <p className="text-sm leading-6 text-[var(--muted)] sm:text-base sm:leading-7">{photo.alt}</p>
               )}
-              {photo.dateLabel || photo.location ? (
+              {photo.dateLabel || photo.location || photo.albumLabel ? (
                 <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-sm text-[var(--muted)]">
                   {photo.dateLabel ? (
                     <span className="inline-flex items-center gap-1.5">
@@ -143,6 +144,12 @@ export function PhotoLightbox({ photos }: { photos: LightboxPhoto[] }) {
                     <span className="inline-flex items-center gap-1.5">
                       <MapPin aria-hidden size={15} />
                       {photo.location}
+                    </span>
+                  ) : null}
+                  {photo.albumLabel ? (
+                    <span className="inline-flex items-center gap-1.5">
+                      <Images aria-hidden size={15} />
+                      {photo.albumLabel}
                     </span>
                   ) : null}
                 </div>
@@ -242,9 +249,9 @@ export function PhotoLightbox({ photos }: { photos: LightboxPhoto[] }) {
               {activePhoto.caption ? (
                 <p className="mt-2 text-[var(--muted)]">{activePhoto.caption}</p>
               ) : null}
-              {activePhoto.dateLabel || activePhoto.location ? (
+              {activePhoto.dateLabel || activePhoto.location || activePhoto.albumLabel ? (
                 <p className="mt-2 text-sm text-[var(--muted)]">
-                  {[activePhoto.dateLabel, activePhoto.location]
+                  {[activePhoto.dateLabel, activePhoto.location, activePhoto.albumLabel]
                     .filter(Boolean)
                     .join(" / ")}
                 </p>

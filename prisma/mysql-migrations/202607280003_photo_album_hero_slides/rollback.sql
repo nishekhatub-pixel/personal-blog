@@ -1,0 +1,7 @@
+DROP TABLE IF EXISTS `HeroSlide`;
+
+ALTER TABLE `Photo` DROP FOREIGN KEY `Photo_albumId_fkey`;
+ALTER TABLE `Photo` MODIFY `albumId` VARCHAR(191) NOT NULL;
+ALTER TABLE `Photo` ADD CONSTRAINT `Photo_albumId_fkey`
+  FOREIGN KEY (`albumId`) REFERENCES `PhotoAlbum`(`id`)
+  ON DELETE CASCADE ON UPDATE CASCADE;

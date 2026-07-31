@@ -32,6 +32,7 @@ export type WeatherHour = {
 
 export type WeatherSnapshot = {
   status: "ready";
+  source: "auto" | "manual";
   city: string;
   timezone: string;
   observedAt: string;
@@ -43,10 +44,11 @@ export type WeatherSnapshot = {
   high: number;
   low: number;
   hourly: WeatherHour[];
+  description?: string;
   attribution: {
     label: string;
     url: string;
-  };
+  } | null;
 };
 
 export type WeatherUnavailable = {
@@ -62,6 +64,10 @@ export type WeatherConfig = {
   latitude: number;
   longitude: number;
   timezone: string;
+  mode?: "auto" | "manual";
+  manualCondition?: string;
+  manualTemperature?: number;
+  manualDescription?: string;
 };
 
 export function weatherCondition(code: number) {
@@ -75,6 +81,16 @@ export function weatherCondition(code: number) {
   if ([71, 73, 75, 77, 85, 86].includes(code)) return "有雪";
   if ([95, 96, 99].includes(code)) return "雷雨";
   return "天气变化中";
+}
+
+export function manualWeatherCode(condition: string) {
+  if (/雷/.test(condition)) return 95;
+  if (/雪/.test(condition)) return 73;
+  if (/雨/.test(condition)) return 61;
+  if (/雾|霾/.test(condition)) return 45;
+  if (/多云|阴/.test(condition)) return 2;
+  if (/晴/.test(condition)) return 0;
+  return 3;
 }
 
 export function isValidTimeZone(timezone: string) {
@@ -101,6 +117,41 @@ export async function fetchWeather(
 ): Promise<WeatherResponse> {
   if (!config.enabled) {
     return { status: "disabled", message: "天气展示已由管理员关闭。" };
+  }
+  if (config.mode === "manual") {
+    const condition = config.manualCondition?.trim() ?? "";
+    const temperature = config.manualTemperature;
+    if (
+      !config.city.trim() ||
+      !condition ||
+      !Number.isFinite(temperature) ||
+      temperature! < -100 ||
+      temperature! > 100 ||
+      !isValidTimeZone(config.timezone)
+    ) {
+      return {
+        status: "unconfigured",
+        message: "手动天气尚未配置城市、天气状态、温度和有效时区。",
+      };
+    }
+    const roundedTemperature = rounded(temperature!);
+    return {
+      status: "ready",
+      source: "manual",
+      city: config.city.trim(),
+      timezone: config.timezone,
+      observedAt: new Date().toISOString(),
+      temperature: roundedTemperature,
+      humidity: 0,
+      windSpeed: 0,
+      code: manualWeatherCode(condition),
+      condition,
+      high: roundedTemperature,
+      low: roundedTemperature,
+      hourly: [],
+      description: config.manualDescription?.trim() || undefined,
+      attribution: null,
+    };
   }
   if (
     !config.city ||
@@ -181,6 +232,7 @@ export async function fetchWeather(
 
     return {
       status: "ready",
+      source: "auto",
       city: config.city,
       timezone: config.timezone,
       observedAt: data.current.time,

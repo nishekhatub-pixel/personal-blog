@@ -1,7 +1,11 @@
+import { existsSync } from "node:fs";
 import type { NextConfig } from "next";
 
-const sharpLinuxLibvips =
-  "./node_modules/.pnpm/@img+sharp-libvips-linux-x64@*/node_modules/@img/sharp-libvips-linux-x64/lib/libvips-cpp.so.*";
+const sharpLinuxLibvips = existsSync("./node_modules/.pnpm")
+  ? [
+      "./node_modules/.pnpm/@img+sharp-libvips-linux-x64@*/node_modules/@img/sharp-libvips-linux-x64/lib/libvips-cpp.so.*",
+    ]
+  : ["./node_modules/@img/sharp-libvips-linux-x64/lib/libvips-cpp.so.*"];
 
 const nextConfig: NextConfig = {
   output: "standalone",
@@ -9,8 +13,8 @@ const nextConfig: NextConfig = {
     optimizePackageImports: ["lucide-react", "motion"],
   },
   outputFileTracingIncludes: {
-    "/api/admin/media": [sharpLinuxLibvips],
-    "/api/media/upload": [sharpLinuxLibvips],
+    "/api/admin/media": sharpLinuxLibvips,
+    "/api/media/upload": sharpLinuxLibvips,
   },
   images: {
     formats: ["image/avif", "image/webp"],

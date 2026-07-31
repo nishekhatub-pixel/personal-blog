@@ -102,7 +102,7 @@ export const photoAlbumInputSchema = z.object({
 });
 
 export const photoInputSchema = z.object({
-  albumId: z.string().trim().min(1).max(64),
+  albumId: optionalId,
   mediaId: z.string().trim().min(1).max(64),
   alt: z.string().trim().min(2).max(255),
   caption: optionalText(5000),
@@ -111,6 +111,13 @@ export const photoInputSchema = z.object({
   position: positionSchema.default(0),
   status: contentStatusSchema.default("DRAFT"),
   publishedAt: optionalDate,
+});
+
+export const heroSlideInputSchema = z.object({
+  mediaId: z.string().trim().min(1).max(64),
+  alt: z.string().trim().min(2).max(255),
+  position: positionSchema.default(0),
+  visible: booleanSchema.default(true),
 });
 
 export const momentMediaInputSchema = z.object({
@@ -159,7 +166,12 @@ const musicBaseSchema = z.object({
 
 const uploadedMusicSchema = musicBaseSchema.extend({
   sourceType: z.literal("UPLOAD"),
-  audioUrl: z.string().trim().regex(/^\/uploads\/audio\/\d{4}\/\d{2}\/[a-f0-9-]+\.(mp3|m4a|aac|ogg)$/),
+  audioUrl: z
+    .string()
+    .trim()
+    .regex(
+      /^\/uploads\/(music|audio)\/\d{4}\/\d{2}\/[a-f0-9-]+\.(mp3|m4a|aac|ogg)$/,
+    ),
   originalName: z.string().trim().min(1).max(255),
   storedName: z.string().trim().regex(/^[a-f0-9-]+\.(mp3|m4a|aac|ogg)$/),
   mimeType: z.enum(["audio/mpeg", "audio/mp4", "audio/aac", "audio/ogg"]),
@@ -238,6 +250,7 @@ export const friendLinkInputSchema = z.object({
 
 export type PhotoAlbumInput = z.infer<typeof photoAlbumInputSchema>;
 export type PhotoInput = z.infer<typeof photoInputSchema>;
+export type HeroSlideInput = z.infer<typeof heroSlideInputSchema>;
 export type MomentInput = z.infer<typeof momentInputSchema>;
 export type MusicTrackInput = z.infer<typeof musicTrackInputSchema>;
 export type PlaylistInput = z.infer<typeof playlistInputSchema>;

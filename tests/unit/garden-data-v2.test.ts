@@ -88,7 +88,7 @@ describe("V2 garden data reads", () => {
     expect(dbMocks.photoCount).toHaveBeenCalledWith({
       where: expect.objectContaining({
         status: "PUBLISHED",
-        album: expect.objectContaining({ status: "PUBLISHED" }),
+        OR: expect.arrayContaining([{ albumId: null }]),
       }),
     });
   });

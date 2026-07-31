@@ -32,7 +32,11 @@ export default async function AdminPhotosPage({
   const rawPage = Number(typeof params.page === "string" ? params.page : "1");
   const page = Number.isFinite(rawPage) && rawPage > 0 ? Math.floor(rawPage) : 1;
   const where: Prisma.PhotoWhereInput = {
-    ...(albumId ? { albumId } : {}),
+    ...(albumId === "unassigned"
+      ? { albumId: null }
+      : albumId
+        ? { albumId }
+        : {}),
     ...(status ? { status } : {}),
     ...(q
       ? {
@@ -91,6 +95,7 @@ export default async function AdminPhotosPage({
             name="album"
           >
             <option value="">全部相册</option>
+            <option value="unassigned">未归档</option>
             {albums.map((album) => (
               <option key={album.id} value={album.id}>
                 {album.title}
@@ -139,7 +144,7 @@ export default async function AdminPhotosPage({
                   {photo.alt}
                 </Link>
                 <p className="mt-2 text-xs text-[var(--muted)]">
-                  {photo.album.title} · {statusLabel[photo.status]} · ORDER {photo.position}
+                  {photo.album?.title ?? "未归档"} · {statusLabel[photo.status]} · ORDER {photo.position}
                 </p>
                 <p className="mt-2 truncate font-mono text-[10px] text-[var(--muted)]">
                   {photo.media.originalName}
@@ -175,7 +180,7 @@ export default async function AdminPhotosPage({
             <ImageIcon aria-hidden="true" className="mx-auto mb-4 text-[var(--muted)]" size={32} strokeWidth={1.3} />
             <p className="font-medium">没有匹配的照片</p>
             <p className="mt-2 text-sm text-[var(--muted)]">
-              请先建立相册并在媒体库上传真实图片。
+              可以直接上传新图片，也可以从媒体库选择，并按需归档到相册。
             </p>
           </div>
         </div>

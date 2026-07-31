@@ -16,6 +16,13 @@ export async function GET() {
     latitude,
     longitude,
     timezone: settings.timezone,
+    mode: settings.weatherMode === "manual" ? "manual" : "auto",
+    manualCondition: settings.manualWeatherCondition,
+    manualTemperature:
+      settings.manualWeatherTemperature.trim() === ""
+        ? Number.NaN
+        : Number(settings.manualWeatherTemperature),
+    manualDescription: settings.manualWeatherDescription,
   });
 
   return NextResponse.json(weather, {

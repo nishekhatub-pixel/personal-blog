@@ -12,6 +12,7 @@ import { db } from "@/lib/db";
 import {
   friendLinkInputSchema,
   guestbookModerationInputSchema,
+  heroSlideInputSchema,
   momentInputSchema,
   musicTrackInputSchema,
   photoAlbumInputSchema,
@@ -30,6 +31,12 @@ const albumPhotoMoveInputSchema = z.object({
   albumId: identifierSchema,
   direction: z.enum(["up", "down"]),
   photoId: identifierSchema,
+});
+const photoAlbumModeSchema = z.enum(["NONE", "EXISTING", "NEW"]);
+const inlinePhotoAlbumSchema = photoAlbumInputSchema.pick({
+  description: true,
+  slug: true,
+  title: true,
 });
 const momentCommentModerationSchema = guestbookModerationInputSchema.pick({
   id: true,
@@ -128,6 +135,15 @@ function refreshPhotos(options: {
     ...albumIds.map((id) => `/admin/albums/${id}/edit`),
     ...photoIds.map((id) => `/admin/photos/${id}/edit`),
     ...slugs.map((slug) => `/photos/${slug}`),
+  ]);
+}
+
+function refreshHero(id?: string) {
+  revalidate([
+    "/",
+    "/admin",
+    "/admin/hero",
+    ...(id ? [`/admin/hero#hero-slide-${id}`] : []),
   ]);
 }
 
@@ -250,8 +266,12 @@ function photoAlbumInput(formData: FormData) {
 }
 
 function photoInput(formData: FormData) {
-  return photoInputSchema.parse({
-    albumId: stringValue(formData, "albumId"),
+  const rawAlbumId = stringValue(formData, "albumId");
+  const albumMode = photoAlbumModeSchema.parse(
+    stringValue(formData, "albumMode") || (rawAlbumId ? "EXISTING" : "NONE"),
+  );
+  const input = photoInputSchema.parse({
+    albumId: albumMode === "EXISTING" ? rawAlbumId : "",
     mediaId: stringValue(formData, "mediaId"),
     alt: stringValue(formData, "alt"),
     caption: stringValue(formData, "caption"),
@@ -260,6 +280,24 @@ function photoInput(formData: FormData) {
     position: stringValue(formData, "position") || "0",
     status: stringValue(formData, "status") || "DRAFT",
     publishedAt: stringValue(formData, "publishedAt"),
+  });
+  const newAlbum =
+    albumMode === "NEW"
+      ? inlinePhotoAlbumSchema.parse({
+          description: stringValue(formData, "newAlbumDescription"),
+          slug: stringValue(formData, "newAlbumSlug"),
+          title: stringValue(formData, "newAlbumTitle"),
+        })
+      : null;
+  return { input, newAlbum };
+}
+
+function heroSlideInput(formData: FormData) {
+  return heroSlideInputSchema.parse({
+    alt: stringValue(formData, "alt"),
+    mediaId: stringValue(formData, "mediaId"),
+    position: stringValue(formData, "position") || "0",
+    visible: checkbox(formData, "visible"),
   });
 }
 
@@ -487,23 +525,36 @@ export async function deletePhotoAlbum(formData: FormData) {
 export async function createPhoto(formData: FormData) {
   await assertSameOrigin();
   const actor = await requireAdmin();
-  const input = photoInput(formData);
-  const photo = await db.photo.create({
-    data: {
-      ...input,
-      publishedAt: resolvePublishedAt(input),
-    },
-    select: {
-      id: true,
-      albumId: true,
-      album: { select: { slug: true } },
-    },
+  const { input, newAlbum } = photoInput(formData);
+  const photo = await db.$transaction(async (transaction) => {
+    const album = newAlbum
+      ? await transaction.photoAlbum.create({
+          data: {
+            ...newAlbum,
+            coverMediaId: input.mediaId,
+            status: "DRAFT",
+          },
+          select: { id: true },
+        })
+      : null;
+    return transaction.photo.create({
+      data: {
+        ...input,
+        albumId: album?.id ?? input.albumId,
+        publishedAt: resolvePublishedAt(input),
+      },
+      select: {
+        id: true,
+        albumId: true,
+        album: { select: { slug: true } },
+      },
+    });
   });
   logAdminWrite(actor.id, "photo", "create", photo.id);
   refreshPhotos({
-    albumIds: [photo.albumId],
+    albumIds: photo.albumId ? [photo.albumId] : [],
     photoIds: [photo.id],
-    slugs: [photo.album.slug],
+    slugs: photo.album ? [photo.album.slug] : [],
   });
   redirect(`/admin/photos/${photo.id}/edit?created=1`);
 }
@@ -688,7 +739,7 @@ export async function updatePhoto(formData: FormData) {
   await assertSameOrigin();
   const actor = await requireAdmin();
   const id = requiredId(formData);
-  const input = photoInput(formData);
+  const { input, newAlbum } = photoInput(formData);
   const existing = await db.photo.findUniqueOrThrow({
     where: { id },
     select: {
@@ -697,23 +748,40 @@ export async function updatePhoto(formData: FormData) {
       album: { select: { slug: true } },
     },
   });
-  const photo = await db.photo.update({
-    where: { id },
-    data: {
-      ...input,
-      publishedAt: resolvePublishedAt(input, existing.publishedAt),
-    },
-    select: {
-      id: true,
-      albumId: true,
-      album: { select: { slug: true } },
-    },
+  const photo = await db.$transaction(async (transaction) => {
+    const album = newAlbum
+      ? await transaction.photoAlbum.create({
+          data: {
+            ...newAlbum,
+            coverMediaId: input.mediaId,
+            status: "DRAFT",
+          },
+          select: { id: true },
+        })
+      : null;
+    return transaction.photo.update({
+      where: { id },
+      data: {
+        ...input,
+        albumId: album?.id ?? input.albumId,
+        publishedAt: resolvePublishedAt(input, existing.publishedAt),
+      },
+      select: {
+        id: true,
+        albumId: true,
+        album: { select: { slug: true } },
+      },
+    });
   });
   logAdminWrite(actor.id, "photo", "update", photo.id);
   refreshPhotos({
-    albumIds: [existing.albumId, photo.albumId],
+    albumIds: [existing.albumId, photo.albumId].filter(
+      (albumId): albumId is string => Boolean(albumId),
+    ),
     photoIds: [photo.id],
-    slugs: [existing.album.slug, photo.album.slug],
+    slugs: [existing.album?.slug, photo.album?.slug].filter(
+      (slug): slug is string => Boolean(slug),
+    ),
   });
   redirect(`/admin/photos/${photo.id}/edit?saved=1`);
 }
@@ -732,9 +800,43 @@ export async function deletePhoto(formData: FormData) {
   });
   logAdminWrite(actor.id, "photo", "delete", photo.id);
   refreshPhotos({
-    albumIds: [photo.albumId],
-    slugs: [photo.album.slug],
+    albumIds: photo.albumId ? [photo.albumId] : [],
+    slugs: photo.album ? [photo.album.slug] : [],
   });
+}
+
+export async function createHeroSlide(formData: FormData) {
+  await assertSameOrigin();
+  const actor = await requireAdmin();
+  const input = heroSlideInput(formData);
+  const slide = await db.heroSlide.create({ data: input });
+  logAdminWrite(actor.id, "heroSlide", "create", slide.id);
+  refreshHero(slide.id);
+  redirect("/admin/hero?created=1");
+}
+
+export async function updateHeroSlide(formData: FormData) {
+  await assertSameOrigin();
+  const actor = await requireAdmin();
+  const id = requiredId(formData);
+  const slide = await db.heroSlide.update({
+    data: heroSlideInput(formData),
+    where: { id },
+  });
+  logAdminWrite(actor.id, "heroSlide", "update", slide.id);
+  refreshHero(slide.id);
+  redirect("/admin/hero?saved=1");
+}
+
+export async function deleteHeroSlide(formData: FormData) {
+  await assertSameOrigin();
+  const actor = await requireAdmin();
+  const slide = await db.heroSlide.delete({
+    select: { id: true },
+    where: { id: requiredId(formData) },
+  });
+  logAdminWrite(actor.id, "heroSlide", "delete", slide.id);
+  refreshHero();
 }
 
 export async function createMusicTrack(formData: FormData) {

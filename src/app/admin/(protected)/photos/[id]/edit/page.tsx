@@ -30,7 +30,7 @@ export default async function EditPhotoPage({
         backHref="/admin/photos"
         backLabel="返回照片列表"
         created={query.created === "1"}
-        description="调整照片说明、相册归属、拍摄信息和公开顺序。"
+        description="调整照片说明、可选相册归属、拍摄信息和公开顺序。"
         eyebrow="PHOTO / EDIT"
         saved={query.saved === "1"}
         title={photo.alt}

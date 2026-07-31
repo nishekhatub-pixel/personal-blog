@@ -101,6 +101,7 @@ export async function deleteMediaAndFiles(id: string) {
       _count: {
         select: {
           albumCovers: true,
+          heroSlides: true,
           photos: true,
           momentMedia: true,
           musicCovers: true,
@@ -116,7 +117,7 @@ export async function deleteMediaAndFiles(id: string) {
   );
   if (referenceCount > 0) {
     throw new Error(
-      `该媒体仍被 ${referenceCount} 处相册、照片、说说或音乐内容引用，请先解除引用。`,
+      `该媒体仍被 ${referenceCount} 处相册、照片、Hero、说说或音乐内容引用，请先解除引用。`,
     );
   }
 

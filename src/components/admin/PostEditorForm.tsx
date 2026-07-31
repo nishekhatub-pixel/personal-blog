@@ -1,9 +1,13 @@
-import {
-  createPost,
-  updatePost,
-} from "@/actions/admin";
+"use client";
+
+import { useState } from "react";
+import { createPost, updatePost } from "@/actions/admin";
 import { MarkdownEditor } from "@/components/admin/MarkdownEditor";
 import { SubmitButton } from "@/components/admin/AdminControls";
+import {
+  MediaAssetPicker,
+  type MediaAssetOption,
+} from "@/components/admin/MediaAssetPicker";
 
 type TaxonomyOption = {
   id: string;
@@ -29,14 +33,17 @@ type EditablePost = {
 
 export function PostEditorForm({
   categories,
+  mediaOptions,
   post,
   tags,
 }: {
   categories: TaxonomyOption[];
+  mediaOptions: MediaAssetOption[];
   post?: EditablePost;
   tags: TaxonomyOption[];
 }) {
   const selectedTags = new Set(post?.tags.map((entry) => entry.tagId) ?? []);
+  const [coverAlt, setCoverAlt] = useState(post?.coverAlt ?? "");
 
   return (
     <form action={post ? updatePost : createPost} className="grid gap-8">
@@ -164,25 +171,30 @@ export function PostEditorForm({
 
       <MarkdownEditor defaultValue={post?.content} />
 
-      <section className="grid gap-5 border-t border-[var(--line)] pt-7 md:grid-cols-2">
-        <label className="grid gap-2 text-sm">
-          <span>封面地址</span>
-          <input
-            className="min-h-11 border border-[var(--line)] bg-transparent px-3 outline-none focus:border-[var(--accent)]"
-            defaultValue={post?.coverImage ?? ""}
-            name="coverImage"
-            placeholder="/uploads/..."
-            type="text"
-          />
-        </label>
+      <section className="grid gap-5 border-t border-[var(--line)] pt-7 lg:grid-cols-[minmax(0,1.35fr)_minmax(16rem,0.65fr)]">
+        <MediaAssetPicker
+          description="直接上传一张新图，或从博客媒体库复用已有图片；不再需要填写文件地址。"
+          initialValue={post?.coverImage}
+          label="文章封面"
+          mediaOptions={mediaOptions}
+          name="coverImage"
+          onSelectionChange={(media) => {
+            if (!media) return;
+            setCoverAlt((current) => current || media.alt || media.originalName);
+          }}
+        />
         <label className="grid gap-2 text-sm">
           <span>封面替代文本</span>
           <input
             className="min-h-11 border border-[var(--line)] bg-transparent px-3 outline-none focus:border-[var(--accent)]"
-            defaultValue={post?.coverAlt ?? ""}
             name="coverAlt"
+            onChange={(event) => setCoverAlt(event.target.value)}
             placeholder="描述画面，而非重复标题"
+            value={coverAlt}
           />
+          <span className="text-xs leading-5 text-[var(--muted)]">
+            上传或选择媒体后会自动带入，可继续修改以帮助读屏与搜索理解图片。
+          </span>
         </label>
       </section>
 

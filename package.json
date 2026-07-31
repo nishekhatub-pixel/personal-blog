@@ -18,6 +18,7 @@
     "test:cleanup": "tsx scripts/verify-database.ts --cleanup-test-data",
     "visual:capture": "tsx scripts/capture-visuals.ts",
     "verify:sharp": "tsx scripts/verify-sharp-runtime.ts",
+    "admin:create": "tsx scripts/create-admin.ts",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",

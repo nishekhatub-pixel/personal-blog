@@ -1,7 +1,13 @@
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { once } from "node:events";
-import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
+import {
+  existsSync,
+  readFileSync,
+  readdirSync,
+  realpathSync,
+  statSync,
+} from "node:fs";
 import { createServer } from "node:net";
 import path from "node:path";
 
@@ -193,22 +199,33 @@ async function main() {
     );
 
     const files = traceFiles(tracePath);
+    const isNextInternalSharp = (file: string) =>
+      file.includes("/node_modules/next/node_modules/@img/");
+    const applicationSharpBinaries = files.filter(
+      (file) =>
+        file.includes("@img/sharp-linux-x64") &&
+        file.endsWith(".node") &&
+        !isNextInternalSharp(file),
+    );
     assert(
-      files.some(
-        (file) =>
-          file.includes("@img/sharp-linux-x64") && file.endsWith(".node"),
-      ),
+      applicationSharpBinaries.length > 0,
       `${relativeTrace} does not include the Linux x64 sharp binary.`,
     );
-    const libvipsFiles = files.filter(
+    const applicationLibvipsFiles = files.filter(
       (file) =>
         file.includes("@img/sharp-libvips-linux-x64") &&
-        file.includes("libvips-cpp.so"),
+        file.includes("libvips-cpp.so") &&
+        !isNextInternalSharp(file),
+    );
+    const applicationLibvipsRealPaths = new Set(
+      applicationLibvipsFiles.map((file) =>
+        realpathSync(path.resolve(path.dirname(tracePath), file)),
+      ),
     );
     assert.equal(
-      libvipsFiles.length,
+      applicationLibvipsRealPaths.size,
       1,
-      `${relativeTrace} must contain exactly one Linux x64 libvips shared library, not ${libvipsFiles.length}.`,
+      `${relativeTrace} must contain exactly one application Linux x64 libvips shared library, not ${applicationLibvipsRealPaths.size}.`,
     );
 
     const traceSizeMb =

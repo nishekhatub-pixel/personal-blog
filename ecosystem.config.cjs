@@ -1,10 +1,10 @@
 const appRoot =
-  process.env.R7_APP_ROOT || "/var/www/r7-next-blog/current";
+  process.env.R7_APP_ROOT || "/var/www/r7-blog/current";
 const envFile =
   process.env.R7_ENV_FILE ||
-  "/var/www/r7-next-blog/shared/.env.production";
+  "/var/www/r7-blog/shared/.env.production";
 const logRoot =
-  process.env.R7_LOG_ROOT || "/var/www/r7-next-blog/shared/logs";
+  process.env.R7_LOG_ROOT || "/var/www/r7-blog/shared/logs";
 
 module.exports = {
   apps: [

@@ -3,7 +3,7 @@
 set -Eeuo pipefail
 umask 027
 
-APP_ROOT="${APP_ROOT:-/var/www/r7-next-blog}"
+APP_ROOT="${APP_ROOT:-/var/www/r7-blog}"
 STORAGE_ROOT="${STORAGE_ROOT:-/var/www/r7-blog-storage}"
 REPO_URL="${REPO_URL:?Set REPO_URL to the Git repository URL.}"
 BRANCH="${BRANCH:-main}"
@@ -16,7 +16,7 @@ CURRENT_LINK="${APP_ROOT}/current"
 RELEASE_DIR="${RELEASES_DIR}/${RELEASE_ID}"
 PREVIOUS_RELEASE=""
 
-for command_name in git node npm npx pm2 curl; do
+for command_name in git node npm pm2 curl; do
   if ! command -v "${command_name}" >/dev/null 2>&1; then
     echo "Required command is missing: ${command_name}" >&2
     exit 1
@@ -55,11 +55,19 @@ cd "${RELEASE_DIR}"
 # Install on Linux itself so Sharp selects Linux/libvips binaries. The
 # repository also keeps pnpm for local development, while package-lock.json
 # makes this npm server workflow reproducible. Never reuse Windows node_modules.
-npm ci --include=optional --no-audit --no-fund
-npx prisma generate
+npm ci --include=dev --include=optional --no-audit --no-fund
+
+PRISMA_CLI="./node_modules/.bin/prisma"
+if [[ ! -x "${PRISMA_CLI}" ]]; then
+  echo "Project-local Prisma CLI is missing after npm ci." >&2
+  exit 1
+fi
+
+"${PRISMA_CLI}" --version
+"${PRISMA_CLI}" generate
 
 # Production migrations are append-only. Never replace this with migrate reset.
-npx prisma migrate deploy
+"${PRISMA_CLI}" migrate deploy
 npm run build
 
 ln -sfn "${RELEASE_DIR}" "${CURRENT_LINK}"

@@ -57,11 +57,22 @@ const STORAGE = {
   loopMode: "r7.audio.loop-mode",
   queue: "r7.audio.queue",
   shuffle: "r7.audio.shuffle",
-  volume: "r7.audio.volume",
+  // v2 intentionally ignores the old key. The previous restore logic treated a
+  // missing localStorage value as Number(null) === 0 and persisted an accidental
+  // mute for first-time visitors.
+  volume: "r7.audio.volume.v2",
 } as const;
+
+export const DEFAULT_AUDIO_VOLUME = 0.72;
 
 function clamp(value: number, minimum: number, maximum: number) {
   return Math.min(maximum, Math.max(minimum, value));
+}
+
+export function parseStoredAudioVolume(value: string | null) {
+  if (value === null || value.trim() === "") return null;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? clamp(parsed, 0, 1) : null;
 }
 
 function safeStoredJson(value: string | null) {
@@ -92,7 +103,7 @@ export function AudioPlayerProvider({
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(() => tracks[0]?.durationSeconds ?? 0);
-  const [volumeState, setVolumeState] = useState(0.72);
+  const [volumeState, setVolumeState] = useState(DEFAULT_AUDIO_VOLUME);
   const [loopMode, setLoopMode] = useState<AudioLoopMode>("off");
   const [shuffle, setShuffle] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -134,10 +145,10 @@ export function AudioPlayerProvider({
         setCurrentTrackId(storedTrack);
       }
 
-      const storedVolume = Number(window.localStorage.getItem(STORAGE.volume));
-      if (Number.isFinite(storedVolume)) {
-        setVolumeState(clamp(storedVolume, 0, 1));
-      }
+      const storedVolume = parseStoredAudioVolume(
+        window.localStorage.getItem(STORAGE.volume),
+      );
+      if (storedVolume !== null) setVolumeState(storedVolume);
 
       const storedLoop = window.localStorage.getItem(STORAGE.loopMode);
       if (

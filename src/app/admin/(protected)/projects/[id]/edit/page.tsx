@@ -14,10 +14,14 @@ export default async function EditProjectPage({
 }) {
   const { id } = await params;
   const query = await searchParams;
-  const [project, tags] = await Promise.all([
+  const [project, mediaOptions, tags] = await Promise.all([
     db.project.findUnique({
       include: { tags: { select: { tagId: true } } },
       where: { id },
+    }),
+    db.media.findMany({
+      orderBy: { createdAt: "desc" },
+      select: { alt: true, id: true, originalName: true, url: true },
     }),
     db.tag.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true } }),
   ]);
@@ -50,7 +54,11 @@ export default async function EditProjectPage({
           {query.created === "1" ? "项目已创建并安全保存。" : "项目修改已保存。"}
         </p>
       ) : null}
-      <ProjectEditorForm project={project} tags={tags} />
+      <ProjectEditorForm
+        mediaOptions={mediaOptions}
+        project={project}
+        tags={tags}
+      />
     </>
   );
 }

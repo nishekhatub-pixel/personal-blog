@@ -1,12 +1,4 @@
-import {
-  ArrowRight,
-  BookOpenText,
-  Camera,
-  FolderKanban,
-  Github,
-  Mail,
-  MessageCircle,
-} from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -14,14 +6,12 @@ import { PetalField } from "@/components/site/atmosphere/petal-field";
 import { AnimatedList } from "@/components/site/home/animated-list";
 import { ContentCalendar } from "@/components/site/home/content-calendar";
 import { PhotoCarousel } from "@/components/site/home/photo-carousel";
-import { TimezoneClock } from "@/components/site/home/timezone-clock";
 import { CompactAudioPlayer } from "@/components/site/music/audio-player";
 import { WeatherCard } from "@/components/site/weather/weather-card";
 import { getSiteSettings } from "@/lib/data";
 import { db } from "@/lib/db";
 import {
   getCurrentMonthCalendarMarkers,
-  getGardenHomepageStats,
   getGardenMixedContent,
   type GardenMixedItem,
 } from "@/lib/garden-data";
@@ -75,16 +65,6 @@ function zonedDateParts(date: Date, timeZone: string) {
     month: Number(parts.month),
     year: Number(parts.year),
   };
-}
-
-function runningDays(value: string) {
-  if (!value) return null;
-  const launch = new Date(`${value}T00:00:00Z`);
-  if (Number.isNaN(launch.getTime())) return null;
-  return Math.max(
-    0,
-    Math.floor((Date.now() - launch.getTime()) / 86_400_000) + 1,
-  );
 }
 
 function ProfileAvatar({
@@ -169,53 +149,17 @@ export default async function HomePage() {
   const settings = await getSiteSettings();
   const now = new Date();
   const calendar = zonedDateParts(now, settings.timezone);
-  const published = {
-    publishedAt: { lte: now },
-    status: "PUBLISHED" as const,
-  };
-  const [
-    stats,
-    mixedItems,
-    markers,
-    pageViews,
-    latestPost,
-    latestProject,
-    latestMoment,
-    latestPhoto,
-    latestTrack,
-  ] = await Promise.all([
-    getGardenHomepageStats(),
+  const [mixedItems, markers, heroSlides] = await Promise.all([
     getGardenMixedContent(8),
     getCurrentMonthCalendarMarkers({
       month: calendar.month,
       timeZone: settings.timezone,
       year: calendar.year,
     }),
-    db.pageView.count(),
-    db.post.findFirst({
-      orderBy: { updatedAt: "desc" },
-      select: { updatedAt: true },
-      where: published,
-    }),
-    db.project.findFirst({
-      orderBy: { updatedAt: "desc" },
-      select: { updatedAt: true },
-      where: published,
-    }),
-    db.moment.findFirst({
-      orderBy: { updatedAt: "desc" },
-      select: { updatedAt: true },
-      where: published,
-    }),
-    db.photo.findFirst({
-      orderBy: { updatedAt: "desc" },
-      select: { updatedAt: true },
-      where: { ...published, album: published },
-    }),
-    db.musicTrack.findFirst({
-      orderBy: { updatedAt: "desc" },
-      select: { updatedAt: true },
-      where: published,
+    db.heroSlide.findMany({
+      include: { media: true },
+      orderBy: [{ position: "asc" }, { createdAt: "asc" }],
+      where: { visible: true },
     }),
   ]);
   const photoIds = mixedItems
@@ -237,132 +181,44 @@ export default async function HomePage() {
       { alt: photo.alt, url: photo.media.url },
     ]),
   );
-  const days = runningDays(settings.siteLaunchDate);
-  const latestUpdate =
-    [
-      latestPost?.updatedAt,
-      latestProject?.updatedAt,
-      latestMoment?.updatedAt,
-      latestPhoto?.updatedAt,
-      latestTrack?.updatedAt,
-    ]
-      .filter((date): date is Date => Boolean(date))
-      .sort((left, right) => right.getTime() - left.getTime())[0] ?? null;
-  const profileEmail = settings.email || settings.contactEmail;
-  const statsRows = [
-    {
-      href: "/blog",
-      icon: BookOpenText,
-      label: "文章",
-      value: stats.posts,
-    },
-    {
-      href: "/projects",
-      icon: FolderKanban,
-      label: "项目",
-      value: stats.projects,
-    },
-    {
-      href: "/moments",
-      icon: MessageCircle,
-      label: "说说",
-      value: stats.moments,
-    },
-    {
-      href: "/photos",
-      icon: Camera,
-      label: "照片",
-      value: stats.photos,
-    },
-  ];
-
   return (
     <main className="home-page" id="main-content">
       <h1 className="sr-only">R7 Digital Garden</h1>
       <PetalField seed="r7-home-garden" />
-      <PhotoCarousel />
+      <PhotoCarousel
+        slides={heroSlides.map((slide) => ({
+          alt: slide.alt || slide.media.alt,
+          id: slide.id,
+          src: slide.media.url,
+        }))}
+      />
       <div className="home-layout">
         <aside className="home-profile-column">
           <section className="home-panel home-profile" aria-labelledby="profile-name">
             <div className="home-profile__identity">
               <ProfileAvatar
-                name={settings.profileName}
+                name="R7's Garden"
                 url={settings.profileAvatar}
               />
-              <div className="min-w-0">
-                <p className="home-profile__site">{settings.siteName}</p>
-                <h2 id="profile-name">{settings.profileName}</h2>
-                <p className="home-profile__role">软件技术专业学生</p>
-                <p className="home-profile__bio">
-                  {settings.profileBio || "个人简介尚未填写。"}
-                </p>
-                {settings.githubUrl || profileEmail ? (
-                  <div className="home-profile__contacts">
-                    {settings.githubUrl ? (
-                      <Link href={settings.githubUrl} rel="noreferrer" target="_blank">
-                        <Github aria-hidden="true" size={14} />
-                        GitHub
-                      </Link>
-                    ) : null}
-                    {profileEmail ? (
-                      <Link href={`mailto:${profileEmail}`}>
-                        <Mail aria-hidden="true" size={14} />
-                        邮箱
-                      </Link>
-                    ) : null}
-                  </div>
-                ) : null}
-              </div>
-            </div>
-
-            <div className="home-profile__stats" aria-label="公开内容统计">
-              {statsRows.map(({ href, icon: Icon, label, value }) => (
-                <Link href={href} key={href}>
-                  <Icon aria-hidden="true" size={15} strokeWidth={1.7} />
-                  <span>{label}</span>
-                  <strong>{value.toLocaleString("zh-CN")}</strong>
-                </Link>
-              ))}
-            </div>
-
-            <nav aria-label="个人快捷导航" className="home-profile__quick">
-              <Link href="/archive">归档</Link>
-              <Link href="/moments">说说</Link>
-              <Link href="/photos">照片墙</Link>
-              <Link href="/projects">开源项目</Link>
-              <Link href="/friends">友链</Link>
-              <Link href="/about">关于</Link>
-            </nav>
-
-            <div className="home-profile__runtime">
-              <TimezoneClock
-                initialIso={now.toISOString()}
-                timeZone={settings.timezone}
-              />
-              <dl>
-                <div>
-                  <dt>运行天数</dt>
-                  <dd>
-                    {days !== null ? `${days.toLocaleString("zh-CN")} 天` : "未设置"}
-                  </dd>
-                </div>
-                <div>
-                  <dt>累计浏览</dt>
-                  <dd>{pageViews.toLocaleString("zh-CN")}</dd>
-                </div>
-                <div>
-                  <dt>最近更新</dt>
-                  <dd>
-                    {latestUpdate ? (
-                      <time dateTime={latestUpdate.toISOString()}>
-                        {dateFormatter.format(latestUpdate)}
-                      </time>
-                    ) : (
-                      "暂无公开内容"
-                    )}
-                  </dd>
-                </div>
-              </dl>
+              <h2 id="profile-name">R7&apos;s Garden</h2>
+              <ul className="home-profile__tags" aria-label="个人标签">
+                <li>
+                  <span aria-hidden="true">🌱</span>
+                  软件技术学生
+                </li>
+                <li>
+                  <span aria-hidden="true">🎹</span>
+                  Piano
+                </li>
+                <li>
+                  <span aria-hidden="true">🏸</span>
+                  Sports
+                </li>
+                <li>
+                  <span aria-hidden="true">💻</span>
+                  Coding
+                </li>
+              </ul>
             </div>
           </section>
         </aside>

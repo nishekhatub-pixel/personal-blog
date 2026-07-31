@@ -6,6 +6,11 @@ const albumInclude = {
   _count: { select: { photos: { where: { status: "PUBLISHED" } } } },
 } satisfies Prisma.PhotoAlbumInclude;
 
+const photoInclude = {
+  album: { select: { id: true, slug: true, title: true } },
+  media: true,
+} satisfies Prisma.PhotoInclude;
+
 const momentInclude = {
   media: { include: { media: true }, orderBy: { position: "asc" } },
   _count: {
@@ -29,6 +34,7 @@ const playlistInclude = {
 } satisfies Prisma.PlaylistInclude;
 
 export type PublicPhotoAlbum = Prisma.PhotoAlbumGetPayload<{ include: typeof albumInclude }>;
+export type PublicPhoto = Prisma.PhotoGetPayload<{ include: typeof photoInclude }>;
 export type PublicMoment = Prisma.MomentGetPayload<{ include: typeof momentInclude }>;
 export type PublicMusicTrack = Prisma.MusicTrackGetPayload<{ include: typeof musicInclude }>;
 export type PublicPlaylist = Prisma.PlaylistGetPayload<{ include: typeof playlistInclude }>;
@@ -41,6 +47,10 @@ type PageQuery = {
 export type AlbumQuery = PageQuery & {
   featured?: boolean;
   city?: string;
+};
+
+export type PhotoQuery = PageQuery & {
+  album?: string;
 };
 
 export type MomentQuery = PageQuery & {
@@ -72,6 +82,20 @@ const publishedWindow = () => ({
   status: "PUBLISHED" as const,
   publishedAt: { lte: new Date() },
 });
+
+export function publicPhotoWhere(now = new Date()): Prisma.PhotoWhereInput {
+  const published = {
+    status: "PUBLISHED" as const,
+    publishedAt: { lte: now },
+  };
+  return {
+    ...published,
+    OR: [
+      { albumId: null },
+      { album: { is: published } },
+    ],
+  };
+}
 
 function publicAlbumInclude(now = new Date()) {
   return {
@@ -122,6 +146,39 @@ export function getPhotoAlbumBySlug(slug: string) {
       },
     },
   });
+}
+
+export async function getPublishedPhotos(params: PhotoQuery = {}) {
+  const { page, pageSize, skip } = pageValues(params.page, params.pageSize);
+  const now = new Date();
+  const albumSlug = params.album?.trim().slice(0, 191);
+  const where: Prisma.PhotoWhereInput = albumSlug
+    ? {
+        ...publishedWindow(),
+        album: {
+          is: {
+            slug: albumSlug,
+            ...publishedWindow(),
+          },
+        },
+      }
+    : publicPhotoWhere(now);
+  const [items, total] = await db.$transaction([
+    db.photo.findMany({
+      include: photoInclude,
+      orderBy: [
+        { position: "asc" },
+        { takenAt: "desc" },
+        { publishedAt: "desc" },
+        { createdAt: "desc" },
+      ],
+      skip,
+      take: pageSize,
+      where,
+    }),
+    db.photo.count({ where }),
+  ]);
+  return pagedResult(items, total, page, pageSize);
 }
 
 export async function getPublishedMoments(params: MomentQuery = {}) {
@@ -280,7 +337,7 @@ export async function getGardenHomepageStats() {
       db.post.count({ where: published }),
       db.project.count({ where: published }),
       db.photoAlbum.count({ where: published }),
-      db.photo.count({ where: { ...published, album: published } }),
+      db.photo.count({ where: publicPhotoWhere(now) }),
       db.moment.count({ where: published }),
       db.musicTrack.count({ where: published }),
       db.playlist.count({ where: published }),
@@ -321,7 +378,7 @@ export async function getGardenMixedContent(limit = 12): Promise<GardenMixedItem
       take,
     }),
     db.photo.findMany({
-      where: { ...published, album: published },
+      where: publicPhotoWhere(now),
       select: {
         id: true,
         alt: true,
@@ -370,9 +427,11 @@ export async function getGardenMixedContent(limit = 12): Promise<GardenMixedItem
     ...photos.map((photo) => ({
         kind: "photo" as const,
         id: photo.id,
-        title: photo.album.title,
+        title: photo.album?.title ?? "照片墙",
         summary: photo.caption ?? photo.alt,
-        href: `/photos/${photo.album.slug}#photo-${photo.id}`,
+        href: photo.album
+          ? `/photos?album=${encodeURIComponent(photo.album.slug)}#photo-${photo.id}`
+          : `/photos#photo-${photo.id}`,
         publishedAt: photo.takenAt ?? photo.publishedAt ?? photo.createdAt,
       })),
     ...tracks.map((track) => ({
@@ -452,10 +511,26 @@ export async function getCurrentMonthCalendarMarkers(input: {
     db.photo.findMany({
       where: {
         status: "PUBLISHED",
-        album: { status: "PUBLISHED", publishedAt: { lte: new Date() } },
-        OR: [
-          { takenAt: { gte: queryStart, lt: queryEnd } },
-          { takenAt: null, publishedAt: { gte: queryStart, lt: queryEnd } },
+        AND: [
+          {
+            OR: [
+              { albumId: null },
+              {
+                album: {
+                  is: {
+                    status: "PUBLISHED",
+                    publishedAt: { lte: new Date() },
+                  },
+                },
+              },
+            ],
+          },
+          {
+            OR: [
+              { takenAt: { gte: queryStart, lt: queryEnd } },
+              { takenAt: null, publishedAt: { gte: queryStart, lt: queryEnd } },
+            ],
+          },
         ],
       },
       select: { alt: true, takenAt: true, publishedAt: true },

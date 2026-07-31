@@ -349,8 +349,8 @@ bash /tmp/r7-blog-bootstrap/deploy/deploy.sh
 
 1. 创建新的 release，不覆盖旧 release。
 2. 在 Linux 上执行 `npm ci --include=optional`。
-3. 执行 `npx prisma generate`。
-4. 执行 `npx prisma migrate deploy`。
+3. 执行 `./node_modules/.bin/prisma generate`。
+4. 执行 `./node_modules/.bin/prisma migrate deploy`。
 5. 执行 `npm run build`。
 6. 补齐 standalone 的 `public` 和 `.next/static`。
 7. 原子切换 `current` symlink。
@@ -361,8 +361,8 @@ bash /tmp/r7-blog-bootstrap/deploy/deploy.sh
 生产 migration 只使用：
 
 ```bash
-npx prisma generate
-npx prisma migrate deploy
+./node_modules/.bin/prisma generate
+./node_modules/.bin/prisma migrate deploy
 ```
 
 Prisma 官方说明 `migrate deploy` 用于生产或预发布环境应用待执行 migration：

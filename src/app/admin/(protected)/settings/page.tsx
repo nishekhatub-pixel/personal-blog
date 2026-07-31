@@ -1,6 +1,7 @@
 import { Save, ShieldCheck } from "lucide-react";
 import { SubmitButton } from "@/components/admin/AdminControls";
 import { AdminHeader } from "@/components/admin/AdminHeader";
+import { MediaAssetPicker } from "@/components/admin/MediaAssetPicker";
 import { SettingsActionForm } from "@/components/admin/SettingsActionForm";
 import { db } from "@/lib/db";
 
@@ -66,10 +67,16 @@ export default async function AdminSettingsPage({
 }: {
   searchParams: Promise<{ saved?: string }>;
 }) {
-  const { saved } = await searchParams;
-  const records = await db.siteSetting.findMany({
-    orderBy: [{ group: "asc" }, { key: "asc" }],
-  });
+  const [{ saved }, records, mediaOptions] = await Promise.all([
+    searchParams,
+    db.siteSetting.findMany({
+      orderBy: [{ group: "asc" }, { key: "asc" }],
+    }),
+    db.media.findMany({
+      orderBy: { createdAt: "desc" },
+      select: { alt: true, id: true, originalName: true, url: true },
+    }),
+  ]);
   const settings = Object.fromEntries(records.map((item) => [item.key, item.value]));
   const field = (key: string, fallback = "") => settings[key] ?? fallback;
   const enabled = (key: string, fallback = true) =>
@@ -221,15 +228,15 @@ export default async function AdminSettingsPage({
                   name="profileBio"
                 />
               </label>
-              <label className="grid gap-2 text-sm md:col-span-2">
-                <span>头像资源地址</span>
-                <input
-                  className={`${inputClass} font-mono text-sm`}
-                  defaultValue={field("profileAvatar")}
+              <div className="min-w-0 md:col-span-2">
+                <MediaAssetPicker
+                  description="直接上传头像，或从博客媒体库选择。推荐使用清晰的方形图片。"
+                  initialValue={field("profileAvatar")}
+                  label="个人头像"
+                  mediaOptions={mediaOptions}
                   name="profileAvatar"
-                  placeholder="/uploads/media/avatar.webp 或 https://"
                 />
-              </label>
+              </div>
               <label className="grid gap-2 text-sm md:col-span-2">
                 <span>Now 页面内容</span>
                 <textarea
@@ -347,6 +354,66 @@ export default async function AdminSettingsPage({
                   name="weatherEnabled"
                 />
               </fieldset>
+              <label className="grid gap-2 text-sm md:col-span-2">
+                <span>天气数据模式</span>
+                <select
+                  className={inputClass}
+                  defaultValue={field("weatherMode", "auto")}
+                  name="weatherMode"
+                >
+                  <option value="auto">自动 · Open-Meteo</option>
+                  <option value="manual">手动 · 使用下方内容</option>
+                </select>
+                <span className="text-xs leading-5 text-[var(--muted)]">
+                  自动模式需要城市、经纬度和时区；手动模式不会请求第三方天气服务。
+                </span>
+              </label>
+              <label className="grid gap-2 text-sm">
+                <span>手动天气状态</span>
+                <select
+                  className={inputClass}
+                  defaultValue={field("manualWeatherCondition", "晴天")}
+                  name="manualWeatherCondition"
+                >
+                  {[
+                    "晴天",
+                    "多云",
+                    "阴天",
+                    "小雨",
+                    "大雨",
+                    "雷雨",
+                    "有雪",
+                    "有雾",
+                  ].map((condition) => (
+                    <option key={condition} value={condition}>
+                      {condition}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="grid gap-2 text-sm">
+                <span>手动温度（°C）</span>
+                <input
+                  className={`${inputClass} font-mono`}
+                  defaultValue={field("manualWeatherTemperature")}
+                  max={100}
+                  min={-100}
+                  name="manualWeatherTemperature"
+                  step="0.1"
+                  type="number"
+                />
+              </label>
+              <label className="grid gap-2 text-sm md:col-span-2">
+                <span>手动天气描述</span>
+                <textarea
+                  className={textareaClass}
+                  defaultValue={field("manualWeatherDescription")}
+                  maxLength={240}
+                  name="manualWeatherDescription"
+                  placeholder="例如：午后有短时小雨，晚些时候转凉。"
+                  rows={3}
+                />
+              </label>
             </div>
           </div>
         </section>

@@ -14,12 +14,16 @@ export default async function EditPostPage({
 }) {
   const { id } = await params;
   const query = await searchParams;
-  const [post, categories, tags] = await Promise.all([
+  const [post, categories, mediaOptions, tags] = await Promise.all([
     db.post.findUnique({
       include: { tags: { select: { tagId: true } } },
       where: { id },
     }),
     db.category.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true } }),
+    db.media.findMany({
+      orderBy: { createdAt: "desc" },
+      select: { alt: true, id: true, originalName: true, url: true },
+    }),
     db.tag.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true } }),
   ]);
   if (!post) notFound();
@@ -58,7 +62,12 @@ export default async function EditPostPage({
           {query.created === "1" ? "文章已创建并安全保存。" : "文章修改已保存。"}
         </p>
       ) : null}
-      <PostEditorForm categories={categories} post={post} tags={tags} />
+      <PostEditorForm
+        categories={categories}
+        mediaOptions={mediaOptions}
+        post={post}
+        tags={tags}
+      />
     </>
   );
 }

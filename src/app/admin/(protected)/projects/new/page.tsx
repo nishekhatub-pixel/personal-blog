@@ -5,10 +5,16 @@ import { ProjectEditorForm } from "@/components/admin/ProjectEditorForm";
 import { db } from "@/lib/db";
 
 export default async function NewProjectPage() {
-  const tags = await db.tag.findMany({
-    orderBy: { name: "asc" },
-    select: { id: true, name: true },
-  });
+  const [mediaOptions, tags] = await Promise.all([
+    db.media.findMany({
+      orderBy: { createdAt: "desc" },
+      select: { alt: true, id: true, originalName: true, url: true },
+    }),
+    db.tag.findMany({
+      orderBy: { name: "asc" },
+      select: { id: true, name: true },
+    }),
+  ]);
 
   return (
     <>
@@ -21,7 +27,7 @@ export default async function NewProjectPage() {
         eyebrow="PROJECT / NEW"
         title="新增项目"
       />
-      <ProjectEditorForm tags={tags} />
+      <ProjectEditorForm mediaOptions={mediaOptions} tags={tags} />
     </>
   );
 }

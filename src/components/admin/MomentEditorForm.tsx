@@ -8,6 +8,10 @@ import {
 } from "@/actions/garden-admin";
 import { SubmitButton } from "@/components/admin/AdminControls";
 import { GardenPublishingFields } from "@/components/admin/GardenPublishingFields";
+import {
+  MediaUploader,
+  type UploadedMedia,
+} from "@/components/admin/MediaUploader";
 
 type MediaOption = {
   alt: string;
@@ -43,7 +47,8 @@ export function MomentEditorForm({
   mediaOptions,
   moment,
 }: MomentEditorFormProps) {
-  const [selectedMedia, setSelectedMedia] = useState<MomentMediaDraft[]>(
+  const [availableMedia, setAvailableMedia] = useState<MediaOption[]>(mediaOptions);
+  const [selectedMedia, setSelectedMedia] = useState<MomentMediaDraft[]>(() =>
     [...(moment?.media ?? [])].sort((left, right) => left.position - right.position),
   );
   const selectedIds = useMemo(
@@ -69,6 +74,14 @@ export function MomentEditorForm({
         },
       ];
     });
+  }
+
+  function handleUploaded(media: UploadedMedia) {
+    setAvailableMedia((current) => {
+      if (current.some((item) => item.id === media.id)) return current;
+      return [media, ...current];
+    });
+    toggleMedia(media, true);
   }
 
   function updateMedia(
@@ -148,10 +161,10 @@ export function MomentEditorForm({
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
             <h2 className="text-lg font-semibold" id="moment-media">
-              关联媒体
+              说说图片
             </h2>
             <p className="mt-2 text-sm text-[var(--muted)]">
-              最多选择 9 张。替代文本必须准确描述画面。
+              可以直接上传，也可以从博客媒体库选择，最多 9 张。
             </p>
           </div>
           <p className="font-mono text-xs text-[var(--muted)]">
@@ -159,9 +172,21 @@ export function MomentEditorForm({
           </p>
         </div>
 
-        {mediaOptions.length ? (
+        <details className="mt-5 border border-[var(--line)] p-4">
+          <summary className="min-h-11 cursor-pointer text-sm font-medium leading-[2.75rem] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]">
+            上传本地图片并自动加入说说
+          </summary>
+          <div className="mt-4">
+            <MediaUploader
+              onUploaded={handleUploaded}
+              refreshAfterUpload={false}
+            />
+          </div>
+        </details>
+
+        {availableMedia.length ? (
           <ul className="mt-5 grid border-l border-t border-[var(--line)] sm:grid-cols-2 xl:grid-cols-3">
-            {mediaOptions.map((option) => {
+            {availableMedia.map((option) => {
               const checked = selectedIds.has(option.id);
               return (
                 <li className="border-b border-r border-[var(--line)] p-3" key={option.id}>
@@ -192,7 +217,7 @@ export function MomentEditorForm({
           </ul>
         ) : (
           <p className="mt-5 border-y border-[var(--line)] py-10 text-sm text-[var(--muted)]">
-            媒体库还没有图片。请先到媒体页上传。
+            媒体库还没有图片，可使用上方入口直接上传。
           </p>
         )}
       </section>
@@ -203,7 +228,7 @@ export function MomentEditorForm({
             图片说明与顺序
           </h2>
           {selectedMedia.map((item) => {
-            const option = mediaOptions.find((media) => media.id === item.mediaId);
+            const option = availableMedia.find((media) => media.id === item.mediaId);
             return (
               <fieldset
                 className="grid gap-4 border border-[var(--line)] p-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_7rem]"

@@ -119,25 +119,42 @@ export function WeatherCard({ className = "" }: { className?: string }) {
         </span>
       </div>
 
-      <div className="mt-4 grid grid-cols-2 gap-2 border-y border-[var(--line)] py-3 text-xs text-[var(--muted)]">
-        <span>最高 {weather.high}° · 最低 {weather.low}°</span>
-        <span className="text-right">
+      {weather.description ? (
+        <p className="mt-4 border-t border-[var(--line)] pt-4 text-sm leading-6 text-[var(--muted)]">
+          {weather.description}
+        </p>
+      ) : null}
+
+      {weather.source === "auto" ? (
+        <div className="mt-4 grid grid-cols-2 gap-2 border-y border-[var(--line)] py-3 text-xs text-[var(--muted)]">
+          <span>最高 {weather.high}° · 最低 {weather.low}°</span>
+          <span className="text-right">
+            {new Intl.DateTimeFormat("zh-CN", {
+              timeZone: weather.timezone,
+              hour: "2-digit",
+              minute: "2-digit",
+            }).format(new Date())}
+            {" 更新"}
+          </span>
+          <span className="flex items-center gap-1.5">
+            <Droplets aria-hidden="true" size={14} />
+            湿度 {weather.humidity}%
+          </span>
+          <span className="flex items-center justify-end gap-1.5">
+            <Wind aria-hidden="true" size={14} />
+            风速 {weather.windSpeed} km/h
+          </span>
+        </div>
+      ) : (
+        <p className="mt-4 border-y border-[var(--line)] py-3 text-xs text-[var(--muted)]">
+          管理员手动更新 ·{" "}
           {new Intl.DateTimeFormat("zh-CN", {
             timeZone: weather.timezone,
             hour: "2-digit",
             minute: "2-digit",
-          }).format(new Date())}
-          {" 更新"}
-        </span>
-        <span className="flex items-center gap-1.5">
-          <Droplets aria-hidden="true" size={14} />
-          湿度 {weather.humidity}%
-        </span>
-        <span className="flex items-center justify-end gap-1.5">
-          <Wind aria-hidden="true" size={14} />
-          风速 {weather.windSpeed} km/h
-        </span>
-      </div>
+          }).format(new Date(weather.observedAt))}
+        </p>
+      )}
 
       {weather.hourly.length ? (
         <ol
@@ -160,17 +177,19 @@ export function WeatherCard({ className = "" }: { className?: string }) {
         </ol>
       ) : null}
 
-      <p className="mt-4 text-[10px] text-[var(--muted)]">
-        天气数据：
-        <a
-          className="underline underline-offset-2 hover:text-[var(--ink)]"
-          href={weather.attribution.url}
-          rel="noopener noreferrer"
-          target="_blank"
-        >
-          {weather.attribution.label}
-        </a>
-      </p>
+      {weather.attribution ? (
+        <p className="mt-4 text-[10px] text-[var(--muted)]">
+          天气数据：
+          <a
+            className="underline underline-offset-2 hover:text-[var(--ink)]"
+            href={weather.attribution.url}
+            rel="noopener noreferrer"
+            target="_blank"
+          >
+            {weather.attribution.label}
+          </a>
+        </p>
+      ) : null}
     </section>
   );
 }

@@ -259,7 +259,10 @@ export function MusicTrackEditorForm({
                 上传后会自动选为当前曲目的封面；若音频带有内嵌封面，也会在上传音频时自动提取。
               </p>
             </div>
-            <MediaUploader onUploaded={acceptCover} />
+            <MediaUploader
+              onUploaded={acceptCover}
+              refreshAfterUpload={false}
+            />
           </section>
           <label className="grid gap-2 text-sm">
             <span>歌词</span>

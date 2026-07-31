@@ -1,9 +1,13 @@
-import {
-  createProject,
-  updateProject,
-} from "@/actions/admin";
+"use client";
+
+import { useState } from "react";
+import { createProject, updateProject } from "@/actions/admin";
 import { SubmitButton } from "@/components/admin/AdminControls";
 import { MarkdownEditor } from "@/components/admin/MarkdownEditor";
+import {
+  MediaAssetPicker,
+  type MediaAssetOption,
+} from "@/components/admin/MediaAssetPicker";
 
 type ProjectRecord = {
   id: string;
@@ -34,13 +38,16 @@ function toLines(raw: string) {
 }
 
 export function ProjectEditorForm({
+  mediaOptions,
   project,
   tags,
 }: {
+  mediaOptions: MediaAssetOption[];
   project?: ProjectRecord;
   tags: { id: string; name: string }[];
 }) {
   const selectedTags = new Set(project?.tags.map((entry) => entry.tagId) ?? []);
+  const [coverAlt, setCoverAlt] = useState(project?.coverAlt ?? "");
 
   return (
     <form action={project ? updateProject : createProject} className="grid gap-8">
@@ -146,20 +153,26 @@ export function ProjectEditorForm({
             placeholder={"/uploads/project-01.webp\n/uploads/project-02.webp"}
           />
         </label>
-        <label className="grid gap-2 text-sm">
-          <span>封面地址</span>
-          <input
-            className="min-h-11 border border-[var(--line)] bg-transparent px-3 outline-none focus:border-[var(--accent)]"
-            defaultValue={project?.coverImage ?? ""}
+        <div className="min-w-0 md:col-span-2">
+          <MediaAssetPicker
+            description="项目封面也统一支持本地上传或从博客媒体库复用。"
+            initialValue={project?.coverImage}
+            label="项目封面"
+            mediaOptions={mediaOptions}
             name="coverImage"
+            onSelectionChange={(media) => {
+              if (!media) return;
+              setCoverAlt((current) => current || media.alt || media.originalName);
+            }}
           />
-        </label>
+        </div>
         <label className="grid gap-2 text-sm">
           <span>封面替代文本</span>
           <input
             className="min-h-11 border border-[var(--line)] bg-transparent px-3 outline-none focus:border-[var(--accent)]"
-            defaultValue={project?.coverAlt ?? ""}
             name="coverAlt"
+            onChange={(event) => setCoverAlt(event.target.value)}
+            value={coverAlt}
           />
         </label>
         <label className="grid gap-2 text-sm">

@@ -183,6 +183,7 @@ model Media {
   variantsJson   String        @default("{}") @db.Text
   albumCovers    PhotoAlbum[]  @relation("PhotoAlbumCover")
   photos         Photo[]       @relation("PhotoMedia")
+  heroSlides     HeroSlide[]   @relation("HeroSlideMedia")
   momentMedia    MomentMedia[] @relation("MomentMediaAsset")
   musicCovers    MusicTrack[]  @relation("MusicTrackCover")
   playlistCovers Playlist[]    @relation("PlaylistCover")
@@ -300,8 +301,8 @@ model PhotoAlbum {
 
 model Photo {
   id          String        @id @default(cuid())
-  albumId     String
-  album       PhotoAlbum    @relation(fields: [albumId], references: [id], onDelete: Cascade)
+  albumId     String?
+  album       PhotoAlbum?   @relation(fields: [albumId], references: [id], onDelete: SetNull)
   mediaId     String
   media       Media         @relation("PhotoMedia", fields: [mediaId], references: [id], onDelete: Restrict)
   alt         String        @db.VarChar(255)
@@ -318,6 +319,19 @@ model Photo {
   @@index([albumId, status, position, publishedAt])
   @@index([mediaId])
   @@index([takenAt])
+}
+
+model HeroSlide {
+  id        String   @id @default(cuid())
+  mediaId   String   @unique
+  media     Media    @relation("HeroSlideMedia", fields: [mediaId], references: [id], onDelete: Restrict)
+  alt       String   @db.VarChar(255)
+  position  Int      @default(0)
+  visible   Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([visible, position])
 }
 
 model Moment {

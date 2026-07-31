@@ -5,8 +5,12 @@ import { PostEditorForm } from "@/components/admin/PostEditorForm";
 import { db } from "@/lib/db";
 
 export default async function CreatePostPage() {
-  const [categories, tags] = await Promise.all([
+  const [categories, mediaOptions, tags] = await Promise.all([
     db.category.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true } }),
+    db.media.findMany({
+      orderBy: { createdAt: "desc" },
+      select: { alt: true, id: true, originalName: true, url: true },
+    }),
     db.tag.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true } }),
   ]);
 
@@ -25,7 +29,11 @@ export default async function CreatePostPage() {
         title="新建文章"
       />
       {categories.length ? (
-        <PostEditorForm categories={categories} tags={tags} />
+        <PostEditorForm
+          categories={categories}
+          mediaOptions={mediaOptions}
+          tags={tags}
+        />
       ) : (
         <div className="border-y border-[var(--line)] py-10">
           <p className="text-sm leading-7 text-[var(--muted)]">
