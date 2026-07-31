@@ -221,6 +221,12 @@ export default async function HomePage() {
               </ul>
             </div>
           </section>
+          <ContentCalendar
+            initialMarkers={markers}
+            initialMonth={calendar.month}
+            initialYear={calendar.year}
+            todayKey={calendar.dateKey}
+          />
         </aside>
 
         <div className="home-main-column">
@@ -254,12 +260,6 @@ export default async function HomePage() {
         <aside className="home-widget-column" aria-label="首页小工具">
           <CompactAudioPlayer />
           <WeatherCard />
-          <ContentCalendar
-            initialMarkers={markers}
-            initialMonth={calendar.month}
-            initialYear={calendar.year}
-            todayKey={calendar.dateKey}
-          />
         </aside>
       </div>
     </main>

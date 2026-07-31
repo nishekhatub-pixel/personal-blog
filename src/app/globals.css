@@ -1316,6 +1316,7 @@ select:focus {
   min-width: 0;
 }
 
+.home-profile-column,
 .home-main-column,
 .home-widget-column {
   display: grid;
